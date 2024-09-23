@@ -3,7 +3,6 @@ from services.auth.routes import auth
 from services.instagram.profile import profile
 from services.instagram.media import media
 from services.instagram.post import post
-
 from uuid import uuid4
 
 def create_app():
@@ -23,5 +22,12 @@ def create_app():
 
 app = create_app()
 
+# Entry point for Vercel
+def main(request):
+    # Use request context for Flask
+    with app.request_context(request):
+        return app.full_dispatch_request()
+
+# For local development
 if __name__ == '__main__':
     app.run(debug=True)
