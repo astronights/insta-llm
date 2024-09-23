@@ -1,0 +1,75 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+    padding-bottom: 60px; /* Make space for the sticky tab */
+}
+
+.content {
+    display: none;
+    padding: 20px;
+}
+
+/* Sticky tab bar styling */
+.tab-bar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    background-color: #333;
+}
+
+.tab-bar button {
+    flex-grow: 1;
+    padding: 15px;
+    background-color: #333;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.tab-bar button.active {
+    background-color: #4CAF50;
+}
+
+.carousel img {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+}
+
+.carousel p {
+    word-wrap: break-word; /* Allows long words to break and wrap */
+    overflow-wrap: break-word; /* Provides additional support for wrapping */
+    margin: 10px 0; /* Add spacing for readability */
+}
+
+.upload-form {
+    text-align: center;
+}
+
+.bio-option {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    background-color: #fff;
+}
+
+.bio-option.selected {
+    border-color: #4CAF50;
+    background-color: #e0ffe0; /* Highlight selected option */
+}
+
+#response-box {
+    margin-top: 10px;
+    display: none; /* Hidden by default */
+}
+
+#submit-bio {
+    display: none; /* Hidden by default */
+    margin-top: 10px;
+}

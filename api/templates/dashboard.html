@@ -1,69 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>User Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-        }
-
-        .content {
-            display: none;
-            padding: 20px;
-        }
-
-        .tab-content {
-            max-width: 100%;
-            height: auto;
-        }
-
-        /* Styling for the tabs */
-        .tab-bar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            background-color: #333;
-        }
-
-        .tab-bar button {
-            flex-grow: 1;
-            padding: 15px;
-            background-color: #333;
-            color: white;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .tab-bar button.active {
-            background-color: #4CAF50;
-        }
-
-        .carousel img {
-            width: 100%;
-            height: auto;
-            max-height: 400px;
-        }
-
-        .upload-form {
-            text-align: center;
-        }
-    </style>
 </head>
+
 <body>
 
     <!-- Bio Tab -->
     <div id="bio" class="content">
-        <h2>Hello {{ profile.username }}</h2>
+        <h2>Hello {{ profile.username }}!</h2>
         <p>[{{ profile.account_type }}]</p>
-        <p>{{ profile.biography }}</p>
+        <p>{{ profile.biography|replace('\n', '<br>')|safe }}</p>
+        <button id="generate-llm">Generate with LLM</button>
+        <div id="response-box" style="display: none;">
+            <h3>Select a new bio:</h3>
+            <div id="bio-options"></div>
+            <button id="copy-bio" style="display: none;">Copy</button>
+            <button id="submit-bio" style="display: none;" disabled>Update</button>
+            <!-- Message display area -->
+            <p id="status-message" style="color: green; margin-top: 10px;"></p>
+        </div>
     </div>
 
     <!-- Posts Tab (Carousel) -->
@@ -71,10 +31,10 @@
         <h2>Instagram Posts</h2>
         <div id="carousel">
             {% for post in posts %}
-                <div>
-                    <img src="{{ post.media_url }}" alt="Post image">
-                    <p>{{ post.caption }}</p>
-                </div>
+            <div>
+                <img src="{{ post.media_url }}" alt="Post image">
+                <p>{{ post.caption }}</p>
+            </div>
             {% endfor %}
         </div>
     </div>
@@ -97,31 +57,102 @@
     </div>
 
     <script>
-        // Default tab to show on load
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             showTab('bio');
         });
 
         function showTab(tabName) {
-            // Hide all content
             var contents = document.getElementsByClassName("content");
             for (var i = 0; i < contents.length; i++) {
                 contents[i].style.display = "none";
             }
 
-            // Remove active class from all buttons
             var buttons = document.getElementsByClassName("tab-button");
             for (var i = 0; i < buttons.length; i++) {
                 buttons[i].classList.remove("active");
             }
 
-            // Show the selected tab content
             document.getElementById(tabName).style.display = "block";
-
-            // Add active class to the clicked button
             event.target.classList.add("active");
         }
+
+        document.getElementById("generate-llm").addEventListener("click", function () {
+            var bioText = "{{ profile.biography|replace('<br>', '\\n')|replace('\n', '\\n') }}";
+
+            fetch('/llm/bio', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bio: bioText })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    var bioOptionsDiv = document.getElementById("bio-options");
+                    bioOptionsDiv.innerHTML = ""; // Clear previous options
+                    data.bios.forEach(function (bio, index) {
+                        var bioDiv = document.createElement("div");
+                        bioDiv.className = "bio-option";
+                        bioDiv.innerText = bio;
+                        bioDiv.onclick = function () {
+                            selectBio(index);
+                        };
+                        bioOptionsDiv.appendChild(bioDiv);
+                    });
+
+                    // Show response box, submit button, and copy button
+                    document.getElementById("response-box").style.display = "block";
+                    document.getElementById("submit-bio").style.display = "inline";
+                    document.getElementById("copy-bio").style.display = "inline"; // Show the Copy button
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        let selectedBioIndex = -1;
+
+        function selectBio(index) {
+            const options = document.querySelectorAll(".bio-option");
+            options.forEach((option, i) => {
+                option.classList.remove("selected");
+            });
+            options[index].classList.add("selected");
+            selectedBioIndex = index; // Store selected index
+        }
+
+        document.getElementById("submit-bio").addEventListener("click", function () {
+            const statusMessage = document.getElementById("status-message");
+            if (selectedBioIndex >= 0) {
+                var selectedBio = document.querySelectorAll(".bio-option")[selectedBioIndex].innerText;
+                console.log("Selected Bio:", selectedBio); // Handle the submission logic here
+                statusMessage.textContent = "Bio submitted successfully!";
+                statusMessage.style.color = "green";
+                // You can add a fetch request to submit the selected bio to your server if needed
+            } else {
+                statusMessage.textContent = "Please select a bio to submit.";
+                statusMessage.style.color = "red";
+            }
+        });
+
+        // Copy selected bio to clipboard
+        document.getElementById("copy-bio").addEventListener("click", function () {
+            const statusMessage = document.getElementById("status-message");
+            if (selectedBioIndex >= 0) {
+                var selectedBio = document.querySelectorAll(".bio-option")[selectedBioIndex].innerText;
+                navigator.clipboard.writeText(selectedBio).then(function () {
+                    statusMessage.textContent = "Bio copied to clipboard!";
+                    statusMessage.style.color = "green";
+                }, function (err) {
+                    console.error('Error copying text: ', err);
+                    statusMessage.textContent = "Failed to copy bio.";
+                    statusMessage.style.color = "red";
+                });
+            } else {
+                statusMessage.textContent = "Please select a bio to copy.";
+                statusMessage.style.color = "red";
+            }
+        });
     </script>
 
 </body>
+
 </html>

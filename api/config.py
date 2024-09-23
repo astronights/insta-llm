@@ -1,5 +1,7 @@
 import os
 
+os.makedirs('api/services/data', exist_ok=True)
+
 class MetaConfig:
     CLIENT_ID = os.getenv('CLIENT_ID', '')
     CLIENT_SECRET = os.getenv('CLIENT_SECRET', '')

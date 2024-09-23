@@ -1,9 +1,10 @@
 from flask import Blueprint, session, request, redirect, url_for, jsonify, current_app as app, render_template
 import requests
+import os
 
 profile = Blueprint('profile', __name__)
 
-@profile.route('/')
+@profile.route('/') 
 def get_profile():
     access_token = session.get('access_token')
     if not access_token:
@@ -20,21 +21,22 @@ def get_profile():
         return f"Failed to fetch profile. Response: {response.text}", 400
 
     profile_data = response.json()
+    open(f'api/services/data/{profile_data["id"]}.txt', 'a').close()
     
     media_params = {
         'business_id': profile_data['id'],
         'access_token': access_token
-    }
+    } 
 
     user_posts = requests.get(url_for('media.get_media', _external=True), params=media_params)
-    posts_data = user_posts.json()
+    posts_data = user_posts.json() 
 
     return render_template('dashboard.html', profile=profile_data, posts=posts_data)
 
 # Update Instagram Business Profile Bio
 @profile.route('/update_bio', methods=['POST'])
 def update_bio():
-    new_bio = request.form.get('bio')
+    new_bio = request.form.get('bio') 
     access_token = session.get('access_token')
     page_id = session.get('facebook_page_id')  # Instagram Business Profile is linked to a Facebook Page
 
@@ -46,6 +48,6 @@ def update_bio():
             'access_token': access_token
         }
         response = requests.post(url, data=payload)
-        return response.json()
+        return response.json() 
     
     return jsonify({"error": "Unable to update bio"}), 400

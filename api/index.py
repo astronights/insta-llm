@@ -2,10 +2,14 @@ from .services.instagram.profile import profile
 from .services.instagram.media import media
 from .services.instagram.post import post
 from .services.auth.routes import auth
+from .services.genai.llm import llm
 from .config import MetaConfig, LLMConfig
 
 from uuid import uuid4
+from datetime import timedelta
+
 from flask import Flask
+from flask_session import Session
 
 def create_app():
     app = Flask(__name__)
@@ -20,6 +24,11 @@ def create_app():
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(media, url_prefix='/media')
     app.register_blueprint(post, url_prefix='/post')
+    app.register_blueprint(llm, url_prefix='/llm')
+
+    app.config['SESSION_TYPE'] = 'filesystem'
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
+    Session(app)
 
     @app.route('/')
     def hello_world():
