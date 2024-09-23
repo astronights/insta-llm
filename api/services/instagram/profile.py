@@ -4,7 +4,7 @@ import os
 
 profile = Blueprint('profile', __name__)
 
-@profile.route('/') 
+@profile.route('/')
 def get_profile():
     access_token = session.get('access_token')
     if not access_token:

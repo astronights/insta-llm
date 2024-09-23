@@ -1,5 +1,6 @@
-from .prompts import bio
+from .prompts import bio, upload
 
+from werkzeug.utils import secure_filename
 from flask import Blueprint, request
 import google.generativeai as genai
 import os
@@ -22,3 +23,26 @@ def generate_bio():
     texts = [v['bio'] for v in literal_eval(options)]
 
     return {'bios': texts}
+
+@llm.route('/upload', methods=['POST'])
+def generate_upload():
+
+    file_data = request.files['media']
+    keywords = request.form.get('keywords', '')
+
+    filename = secure_filename(file_data.filename)
+    file_path = os.path.join('api/services/data', filename)
+    file_data.save(file_path)
+
+    gen_file = genai.upload_file(path=file_path)
+    llm_prompt = upload.format(keywords=keywords)
+
+    response = model.generate_content([llm_prompt] + [gen_file]).text
+    os.remove(file_path)
+
+    texts = literal_eval(response.lstrip('```json').strip('```'))
+
+    options = [t['headline'] + '\n\n' + t['description'] for t in texts['options']]
+    hashtags = ' '.join(texts['hashtags'])
+
+    return {'captions': options, 'hashtags': hashtags}

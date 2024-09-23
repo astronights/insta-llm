@@ -3,7 +3,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: #f0f0f0;
-    padding-bottom: 60px; /* Make space for the sticky tab */
+    padding-bottom: 60px; /* Space for sticky tab */
 }
 
 .content {
@@ -11,7 +11,6 @@ body {
     padding: 20px;
 }
 
-/* Sticky tab bar styling */
 .tab-bar {
     position: fixed;
     bottom: 0;
@@ -42,16 +41,30 @@ body {
 }
 
 .carousel p {
-    word-wrap: break-word; /* Allows long words to break and wrap */
-    overflow-wrap: break-word; /* Provides additional support for wrapping */
-    margin: 10px 0; /* Add spacing for readability */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    margin: 10px 0;
 }
 
 .upload-form {
-    text-align: center;
+    text-align: left;
 }
 
-.bio-option {
+.upload-section {
+    display: flex;
+    align-items: center;
+}
+
+.file-upload-label {
+    background-color: #4CAF50;
+    color: white;
+    padding: 7px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.bio-option,
+.upload-option {
     margin: 10px 0;
     padding: 10px;
     border: 1px solid #ccc;
@@ -59,17 +72,22 @@ body {
     background-color: #fff;
 }
 
-.bio-option.selected {
+.bio-option.selected,
+.upload-option.selected {
     border-color: #4CAF50;
-    background-color: #e0ffe0; /* Highlight selected option */
+    background-color: #e0ffe0;
 }
 
-#response-box {
+#response-box-bio,
+#response-box-upload {
     margin-top: 10px;
-    display: none; /* Hidden by default */
+    display: none;
 }
 
-#submit-bio {
-    display: none; /* Hidden by default */
+#copy-bio,
+#submit-bio,
+#copy-upload,
+#submit-upload {
     margin-top: 10px;
+    display: inline;
 }

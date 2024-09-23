@@ -15,14 +15,13 @@
         <h2>Hello {{ profile.username }}!</h2>
         <p>[{{ profile.account_type }}]</p>
         <p>{{ profile.biography|replace('\n', '<br>')|safe }}</p>
-        <button id="generate-llm">Generate with LLM</button>
-        <div id="response-box" style="display: none;">
+        <button id="generate-llm-bio">Generate with LLM</button>
+        <div id="response-box-bio" style="display: none;">
             <h3>Select a new bio:</h3>
             <div id="bio-options"></div>
             <button id="copy-bio" style="display: none;">Copy</button>
-            <button id="submit-bio" style="display: none;" disabled>Update</button>
-            <!-- Message display area -->
-            <p id="status-message" style="color: green; margin-top: 10px;"></p>
+            <button id="submit-bio" style="display: none;">Submit</button>
+            <p id="status-message-bio" style="color: green; margin-top: 10px;"></p>
         </div>
     </div>
 
@@ -42,12 +41,33 @@
     <!-- Upload Tab -->
     <div id="upload" class="content">
         <h2>Upload New Post</h2>
-        <form action="/upload_post" method="POST" enctype="multipart/form-data" class="upload-form">
-            <input type="file" name="media" required>
-            <textarea name="caption" placeholder="Write a caption" required></textarea><br>
-            <button type="submit">Upload</button>
+        <form id="upload-form" enctype="multipart/form-data" class="upload-form">
+            <div class="upload-section">
+                <label for="file-upload" class="file-upload-label">
+                    <input type="file" id="file-upload" name="media" style="display:none;" required>
+                    <span>Select File</span>
+                </label>
+                <p id="file-name" style="margin-left: 10px;">No file selected</p>
+            </div>
+
+            <!-- Textbox for Keywords -->
+            <div class="upload-section" style="display:none;" id="keyword-section">
+                <label for="keywords">Keywords:</label>
+                <input type="text" id="keywords" name="keywords" placeholder="Enter keywords separated by commas">
+            </div>
         </form>
+        <button id="generate-llm-upload" type="button" style="display:none;">Generate with LLM</button>
+
+        <div id="response-box-upload" style="display: none;">
+            <h3>Select a caption:</h3>
+            <div id="upload-options"></div>
+            <button id="copy-upload" style="display: none;">Copy</button>
+            <button id="submit-upload" style="display: none;">Submit</button>
+            <p id="upload-status" style="color: green; margin-top: 10px;"></p>
+        </div>
     </div>
+    </div>
+
 
     <!-- Tab bar at the bottom -->
     <div class="tab-bar">
@@ -76,7 +96,110 @@
             event.target.classList.add("active");
         }
 
-        document.getElementById("generate-llm").addEventListener("click", function () {
+        // Handle file upload and display file name
+        document.getElementById('file-upload').addEventListener('change', function (e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : 'No file selected';
+            document.getElementById('file-name').textContent = formatFileName(fileName);
+            if (fileName !== 'No file selected') {
+                document.getElementById('generate-llm-upload').style.display = 'block';
+                document.getElementById('keyword-section').style.display = 'block';
+            } else {
+                document.getElementById('generate-llm-upload').style.display = 'none';
+                document.getElementById('keyword-section').style.display = 'none';
+            }
+        });
+
+        function formatFileName(fileName) {
+            const extension = fileName.split('.').pop();
+            const nameWithoutExtension = fileName.slice(0, -(extension.length + 1));
+
+            if (nameWithoutExtension.length > 18) {
+                return nameWithoutExtension.slice(0, 10) + '...' + nameWithoutExtension.slice(-5) + '.' + extension;
+            } else {
+                return fileName;
+            }
+        }
+
+        // Generate LLM Text on the upload tab
+        document.getElementById('generate-llm-upload').addEventListener('click', function () {
+            const fileInput = document.getElementById('file-upload');
+            const formData = new FormData();
+            formData.append('media', fileInput.files[0]);
+
+            fetch('/llm/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Display the LLM response as selectable options
+                    const uploadOptionsDiv = document.getElementById('upload-options');
+                    uploadOptionsDiv.innerHTML = ""; // Clear previous options
+                    data.captions.forEach(function (caption, index) {
+                        const captionDiv = document.createElement("div");
+                        captionDiv.className = "upload-option";
+                        captionDiv.innerText = caption;
+                        captionDiv.onclick = function () {
+                            selectUploadOption(index);
+                        };
+                        uploadOptionsDiv.appendChild(captionDiv);
+                    });
+
+                    // Show response box and buttons
+                    document.getElementById('response-box-upload').style.display = 'block';
+                    document.getElementById('copy-upload').style.display = 'inline';
+                    document.getElementById('submit-upload').style.display = 'inline';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('upload-status').textContent = "Error generating caption.";
+                    document.getElementById('upload-status').style.color = "red";
+                });
+        });
+
+        let selectedUploadIndex = -1;
+
+        function selectUploadOption(index) {
+            const options = document.querySelectorAll(".upload-option");
+            options.forEach((option, i) => {
+                option.classList.remove("selected");
+            });
+            options[index].classList.add("selected");
+            selectedUploadIndex = index; // Store selected index
+        }
+
+        document.getElementById("submit-upload").addEventListener("click", function () {
+            const uploadStatus = document.getElementById("upload-status");
+            if (selectedUploadIndex >= 0) {
+                var selectedCaption = document.querySelectorAll(".upload-option")[selectedUploadIndex].innerText;
+                console.log("Selected Caption:", selectedCaption); // Handle the submission logic here
+                uploadStatus.textContent = "Caption submitted successfully!";
+                uploadStatus.style.color = "green";
+            } else {
+                uploadStatus.textContent = "Please select a caption to submit.";
+                uploadStatus.style.color = "red";
+            }
+        });
+
+        document.getElementById("copy-upload").addEventListener("click", function () {
+            const uploadStatus = document.getElementById("upload-status");
+            if (selectedUploadIndex >= 0) {
+                var selectedCaption = document.querySelectorAll(".upload-option")[selectedUploadIndex].innerText;
+                navigator.clipboard.writeText(selectedCaption).then(function () {
+                    uploadStatus.textContent = "Caption copied to clipboard!";
+                    uploadStatus.style.color = "green";
+                }, function (err) {
+                    uploadStatus.textContent = "Failed to copy caption.";
+                    uploadStatus.style.color = "red";
+                });
+            } else {
+                uploadStatus.textContent = "Please select a caption to copy.";
+                uploadStatus.style.color = "red";
+            }
+        });
+
+        // Separate function for the Bio tab
+        document.getElementById("generate-llm-bio").addEventListener("click", function () {
             var bioText = "{{ profile.biography|replace('<br>', '\\n')|replace('\n', '\\n') }}";
 
             fetch('/llm/bio', {
@@ -101,9 +224,9 @@
                     });
 
                     // Show response box, submit button, and copy button
-                    document.getElementById("response-box").style.display = "block";
+                    document.getElementById("response-box-bio").style.display = "block";
                     document.getElementById("submit-bio").style.display = "inline";
-                    document.getElementById("copy-bio").style.display = "inline"; // Show the Copy button
+                    document.getElementById("copy-bio").style.display = "inline";
                 })
                 .catch(error => console.error('Error:', error));
         });
@@ -120,29 +243,26 @@
         }
 
         document.getElementById("submit-bio").addEventListener("click", function () {
-            const statusMessage = document.getElementById("status-message");
+            const statusMessage = document.getElementById("status-message-bio");
             if (selectedBioIndex >= 0) {
                 var selectedBio = document.querySelectorAll(".bio-option")[selectedBioIndex].innerText;
                 console.log("Selected Bio:", selectedBio); // Handle the submission logic here
                 statusMessage.textContent = "Bio submitted successfully!";
                 statusMessage.style.color = "green";
-                // You can add a fetch request to submit the selected bio to your server if needed
             } else {
                 statusMessage.textContent = "Please select a bio to submit.";
                 statusMessage.style.color = "red";
             }
         });
 
-        // Copy selected bio to clipboard
         document.getElementById("copy-bio").addEventListener("click", function () {
-            const statusMessage = document.getElementById("status-message");
+            const statusMessage = document.getElementById("status-message-bio");
             if (selectedBioIndex >= 0) {
                 var selectedBio = document.querySelectorAll(".bio-option")[selectedBioIndex].innerText;
                 navigator.clipboard.writeText(selectedBio).then(function () {
                     statusMessage.textContent = "Bio copied to clipboard!";
                     statusMessage.style.color = "green";
                 }, function (err) {
-                    console.error('Error copying text: ', err);
                     statusMessage.textContent = "Failed to copy bio.";
                     statusMessage.style.color = "red";
                 });
