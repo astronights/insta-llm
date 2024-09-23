@@ -1,9 +1,10 @@
-from flask import Flask
-from services.auth.routes import auth
-from services.instagram.profile import profile
-from services.instagram.media import media
-from services.instagram.post import post
+from .services.instagram.profile import profile
+from .services.instagram.media import media
+from .services.instagram.post import post
+from .services.auth.routes import auth
+
 from uuid import uuid4
+from flask import Flask
 
 def create_app():
     app = Flask(__name__)
