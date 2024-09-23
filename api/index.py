@@ -4,9 +4,6 @@ import requests
 from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
-
-
-# Secret key to manage sessions
 app.secret_key = str(uuid4())
 
 # Replace these with your Instagram App's credentials
