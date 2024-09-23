@@ -9,5 +9,4 @@ insta_llm
 
 # Data
 **/data/*.txt
-flask_session/*
-!flask_session/.gitkeep
+flask_session/
