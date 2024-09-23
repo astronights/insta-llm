@@ -1,0 +1,8 @@
+# Environment Variables
+.env
+
+# Py Cache
+__pycache__
+
+# Virtual Environment
+insta_llm
