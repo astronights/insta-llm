@@ -1,26 +1,35 @@
-from flask import Blueprint, session, request, jsonify
+from flask import Blueprint, session, request, redirect, url_for, jsonify, current_app as app, render_template
 import requests
 
 profile = Blueprint('profile', __name__)
 
-# Fetch Instagram Business Profile Info including bio
 @profile.route('/')
 def get_profile():
     access_token = session.get('access_token')
-    insta_business_account_id = session.get('instagram_business_account_id')
-    
-    if insta_business_account_id:
-        url = f"{app.config['GRAPH_API_URL']}/{insta_business_account_id}"
-        params = {
-            'fields': 'username,media_count,biography',
-            'access_token': access_token
-        }
-        response = requests.get(url, params=params)
-        profile_data = response.json()
-        return profile_data
-    
-    return jsonify({"error": "Profile not found"}), 404
+    if not access_token:
+        return redirect(url_for('auth.login'))
 
+    business_profile_url = app.config['GRAPH_API_URL'] + '/me'
+    params = {
+        'fields': 'id,username,account_type,biography',
+        'access_token': access_token
+    }
+
+    response = requests.get(business_profile_url, params=params)
+    if response.status_code != 200:
+        return f"Failed to fetch profile. Response: {response.text}", 400
+
+    profile_data = response.json()
+    
+    media_params = {
+        'business_id': profile_data['id'],
+        'access_token': access_token
+    }
+
+    user_posts = requests.get(url_for('media.get_media', _external=True), params=media_params)
+    posts_data = user_posts.json()
+
+    return render_template('dashboard.html', profile=profile_data, posts=posts_data)
 
 # Update Instagram Business Profile Bio
 @profile.route('/update_bio', methods=['POST'])

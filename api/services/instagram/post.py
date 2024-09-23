@@ -1,4 +1,4 @@
-from flask import Blueprint, session, request
+from flask import Blueprint, session, request, current_app as app
 import requests
 
 post = Blueprint('post', __name__)

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Styling for the tabs */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            background-color: #333;
+        }
+
+        .tab-bar button {
+            flex-grow: 1;
+            padding: 15px;
+            background-color: #333;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .tab-bar button.active {
+            background-color: #4CAF50;
+        }
+
+        .carousel img {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+        }
+
+        .upload-form {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Bio Tab -->
+    <div id="bio" class="content">
+        <h2>{{ profile.username }}'s Bio</h2>
+        <p>Account Type: {{ profile.account_type }}</p>
+        <p>{{ profile.biography }}</p>
+    </div>
+
+    <!-- Posts Tab (Carousel) -->
+    <div id="posts" class="content carousel">
+        <h2>Instagram Posts</h2>
+        <div id="carousel">
+            {% for post in posts %}
+                <div>
+                    <img src="{{ post.media_url }}" alt="Post image">
+                    <p>{{ post.caption }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Upload Tab -->
+    <div id="upload" class="content">
+        <h2>Upload New Post</h2>
+        <form action="/upload_post" method="POST" enctype="multipart/form-data" class="upload-form">
+            <input type="file" name="media" required>
+            <textarea name="caption" placeholder="Write a caption" required></textarea><br>
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+
+    <!-- Tab bar at the bottom -->
+    <div class="tab-bar">
+        <button class="tab-button" onclick="showTab('bio')">Bio</button>
+        <button class="tab-button" onclick="showTab('posts')">Posts</button>
+        <button class="tab-button" onclick="showTab('upload')">Upload</button>
+    </div>
+
+    <script>
+        // Default tab to show on load
+        document.addEventListener("DOMContentLoaded", function() {
+            showTab('bio');
+        });
+
+        function showTab(tabName) {
+            // Hide all content
+            var contents = document.getElementsByClassName("content");
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].style.display = "none";
+            }
+
+            // Remove active class from all buttons
+            var buttons = document.getElementsByClassName("tab-button");
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove("active");
+            }
+
+            // Show the selected tab content
+            document.getElementById(tabName).style.display = "block";
+
+            // Add active class to the clicked button
+            event.target.classList.add("active");
+        }
+    </script>
+
+</body>
+</html>

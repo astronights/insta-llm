@@ -1,20 +1,27 @@
-from flask import Blueprint, session, request
+from flask import Blueprint, session, request, current_app as app
 import requests
 
 media = Blueprint('media', __name__)
 
 @media.route('/')
 def get_media():
-    access_token = session.get('access_token')
-    insta_business_account_id = session.get('instagram_business_account_id')
+    igid = request.args.get('business_id')
+    access_token = request.args.get('access_token')
     
-    if insta_business_account_id:
-        url = f"{app.config['GRAPH_API_URL']}/{insta_business_account_id}/media"
-        response = requests.get(url, params={'access_token': access_token, 'fields': 'id,caption,media_type,media_url,permalink'})
-        media_data = response.json()
-        return media_data
-    
-    return "No media found", 404
+    # posts_url = app.config['GRAPH_API_URL'] + f'/v20.0/{igid}/media'
+    posts_url = app.config['GRAPH_API_URL']+ '/me/media'
+    posts_params = {
+        'fields': 'id,caption,media_url,media_type',
+        'access_token': access_token
+    }
+
+    posts_response = requests.get(posts_url, params=posts_params)
+    if posts_response.status_code != 200:
+        return f"Failed to fetch posts. Response: {posts_response.text}", 400
+
+    posts_data = posts_response.json().get('data', [])
+
+    return posts_data
 
 @media.route('/<media_id>/edit_caption', methods=['POST'])
 def edit_caption(media_id):
