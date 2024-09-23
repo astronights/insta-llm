@@ -2,6 +2,7 @@ from .services.instagram.profile import profile
 from .services.instagram.media import media
 from .services.instagram.post import post
 from .services.auth.routes import auth
+from .config import MetaConfig, LLMConfig
 
 from uuid import uuid4
 from flask import Flask
@@ -11,7 +12,8 @@ def create_app():
     app.secret_key = str(uuid4())
     
     # Load configuration (API keys, secrets)
-    app.config.from_object('config.MetaConfig')
+    app.config.from_object(MetaConfig)
+    app.config.from_object(LLMConfig)
 
     # Register blueprints
     app.register_blueprint(profile, url_prefix='/profile')
