@@ -13,10 +13,14 @@ def create_app():
     app.config.from_object('config.MetaConfig')
 
     # Register blueprints
-    app.register_blueprint(profile, url_prefix='/')
+    app.register_blueprint(profile, url_prefix='/profile')
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(media, url_prefix='/media')
     app.register_blueprint(post, url_prefix='/post')
+
+    @app.route('/')
+    def hello_world():
+        return 'Hello, World!'
 
     return app
 
