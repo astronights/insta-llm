@@ -36,4 +36,4 @@ def callback():
 
     session['access_token'] = access_token_data.get('access_token')
 
-    return redirect(url_for('home.home'))
+    return redirect(url_for('home.bio_page'))
