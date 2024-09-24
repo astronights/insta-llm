@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bio_styles.css') }}">
+    <title>User Dashboard</title>
+</head>
+
+<body>
+
+    <!-- Bio Tab -->
+    <div id="bio" class="content">
+        <h2>Hello {{ profile.username }}!</h2>
+        <p>[{{ profile.account_type }}]</p>
+        <p>{{ profile.biography|replace('\n', '<br>')|safe }}</p>
+        <button id="generate-llm">Generate with LLM</button>
+        <div id="response-box" style="display: none;">
+            <h3>Select a new bio:</h3>
+            <div id="bio-options"></div>
+            <button id="copy" style="display: none;">Copy</button>
+            <button id="update" style="display: none;" disabled>Submit</button>
+            <p id="status-message" style="color: green; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <!-- Tab bar at the bottom -->
+    <div class="tab-bar">
+        <button class="tab-button active" onclick="showTab('bio')">Bio</button>
+        <button class="tab-button" onclick="showTab('posts')">Posts</button>
+        <button class="tab-button" onclick="showTab('upload')">Upload</button>
+    </div>
+
+    <script>
+        function showTab(tab) {
+            const url = `/home/${tab}`;
+            window.location.href = url;
+        }
+
+        document.getElementById("generate-llm").addEventListener("click", function () {
+            var bioText = "{{ profile.biography|replace('<br>', '\\n')|replace('\n', '\\n') }}";
+
+            fetch('/llm/bio', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bio: bioText })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    var bioOptionsDiv = document.getElementById("bio-options");
+                    bioOptionsDiv.innerHTML = "";
+                    data.bios.forEach(function (bio, index) {
+                        var bioDiv = document.createElement("div");
+                        bioDiv.className = "bio-option";
+                        bioDiv.innerText = bio;
+                        bioDiv.onclick = function () {
+                            selectBio(index);
+                        };
+                        bioOptionsDiv.appendChild(bioDiv);
+                    });
+
+                    document.getElementById("response-box").style.display = "block";
+                    document.getElementById("update").style.display = "inline";
+                    document.getElementById("copy").style.display = "inline";
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        let selectedBioIndex = -1;
+
+        function selectBio(index) {
+            const options = document.querySelectorAll(".bio-option");
+            options.forEach((option, i) => {
+                option.classList.remove("selected");
+            });
+            options[index].classList.add("selected");
+            selectedBioIndex = index;
+        }
+
+        document.getElementById("update").addEventListener("click", function () {
+            const statusMessage = document.getElementById("status-message");
+            if (selectedBioIndex >= 0) {
+                var selectedBio = document.querySelectorAll(".bio-option")[selectedBioIndex].innerText;
+                statusMessage.textContent = "Bio updated successfully!";
+                statusMessage.style.color = "green";
+            } else {
+                statusMessage.textContent = "Please select a bio to update.";
+                statusMessage.style.color = "red";
+            }
+        });
+
+        document.getElementById("copy").addEventListener("click", function () {
+            const statusMessage = document.getElementById("status-message");
+            if (selectedBioIndex >= 0) {
+                var selectedBio = document.querySelectorAll(".bio-option")[selectedBioIndex].innerText;
+                navigator.clipboard.writeText(selectedBio).then(function () {
+                    statusMessage.textContent = "Bio copied to clipboard!";
+                    statusMessage.style.color = "green";
+                }, function (err) {
+                    statusMessage.textContent = "Failed to copy bio.";
+                    statusMessage.style.color = "red";
+                });
+            } else {
+                statusMessage.textContent = "Please select a bio to copy.";
+                statusMessage.style.color = "red";
+            }
+        });
+    </script>
+
+</body>
+
+</html>

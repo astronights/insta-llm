@@ -2,6 +2,7 @@ from .services.instagram.profile import profile
 from .services.instagram.media import media
 from .services.instagram.post import post
 from .services.auth.routes import auth
+from .services.home import home
 from .services.genai.llm import llm
 from .config import MetaConfig, LLMConfig
 
@@ -20,6 +21,7 @@ def create_app():
     app.config.from_object(LLMConfig)
 
     # Register blueprints
+    app.register_blueprint(home, url_prefix='/home')
     app.register_blueprint(profile, url_prefix='/profile')
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(media, url_prefix='/media')

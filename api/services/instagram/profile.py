@@ -6,9 +6,7 @@ profile = Blueprint('profile', __name__)
 
 @profile.route('/')
 def get_profile():
-    access_token = session.get('access_token')
-    if not access_token:
-        return redirect(url_for('auth.login'))
+    access_token = request.args.get('access_token')
 
     business_profile_url = app.config['GRAPH_API_URL'] + '/me'
     params = {
@@ -20,18 +18,7 @@ def get_profile():
     if response.status_code != 200:
         return f"Failed to fetch profile. Response: {response.text}", 400
 
-    profile_data = response.json()
-    open(f'api/services/data/{profile_data["id"]}.txt', 'a').close()
-    
-    media_params = {
-        'business_id': profile_data['id'],
-        'access_token': access_token
-    } 
-
-    user_posts = requests.get(url_for('media.get_media', _external=True), params=media_params)
-    posts_data = user_posts.json() 
-
-    return render_template('dashboard.html', profile=profile_data, posts=posts_data)
+    return response.json()
 
 # Update Instagram Business Profile Bio
 @profile.route('/update_bio', methods=['POST'])

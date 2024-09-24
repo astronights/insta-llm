@@ -11,7 +11,7 @@ def login():
                 + '&redirect_uri=' + app.config['REDIRECT_URI']
                 + '&scope=instagram_business_basic,instagram_business_content_publish')
     
-    return redirect(auth_url)
+    return redirect(auth_url) 
 
 @auth.route('/callback')
 def callback():
@@ -36,4 +36,4 @@ def callback():
 
     session['access_token'] = access_token_data.get('access_token')
 
-    return redirect(url_for('profile.get_profile'))
+    return redirect(url_for('home.home'))
