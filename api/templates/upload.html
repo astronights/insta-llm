@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/upload_styles.css') }}">
+    <title>Upload Media</title>
+</head>
+
+<body>
+
+    <!-- Upload Tab -->
+    <div id="upload" class="content">
+        <h2>Upload Your Media</h2>
+
+        <div class="media-grid">
+            <div class="media-box" id="media-box-1" onclick="triggerUpload(1)">
+                <span class="placeholder">+</span>
+                <input type="file" id="upload-input-1" class="upload-input" accept="image/*,video/*" onchange="handleFileUpload(1)" />
+            </div>
+        </div>
+
+        <textarea id="free-text" rows="2" placeholder="Enter description here..."></textarea>
+
+        <button id="generate-llm">Generate with LLM</button>
+
+        <div id="response-box">
+            <h3>Select a caption:</h3>
+            <div id="caption-options"></div>
+            <h3>Hashtags:</h3>
+            <div id="hashtag-box" class="hashtag-box"></div>
+            <button id="copy" style="display: none;">Copy</button>
+            <button id="update" style="display: none;" disabled>Update</button>
+            <p id="status-message" style="color: green; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <!-- Tab bar at the bottom -->
+    <div class="tab-bar">
+        <button class="tab-button" onclick="showTab('')">Bio</button>
+        <button class="tab-button" onclick="showTab('posts')">Posts</button>
+        <button class="tab-button active" onclick="showTab('upload')">Upload</button>
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+        let selectedCaptionIndex = -1;
+
+        function showTab(tab) {
+            const url = `/home/${tab}`;
+            window.location.href = url;
+        }
+
+        function triggerUpload(index) {
+            const input = document.getElementById(`upload-input-${index}`);
+            input.value = '';  // Reset file input so it can re-trigger file selection
+            input.click();
+        }
+
+        function handleFileUpload(index) {
+            const fileInput = document.getElementById(`upload-input-${index}`);
+            const file = fileInput.files[0];
+
+            if (file) {
+                if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                    alert('Only images and videos are allowed');
+                    return;
+                }
+
+                const mediaBox = document.getElementById(`media-box-${index}`);
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    if (file.type.startsWith('video/')) {
+                        mediaBox.innerHTML = `<div class="video-thumbnail">
+                                                <video width="72" height="72" muted autoplay loop>
+                                                    <source src="${e.target.result}" type="${file.type}">
+                                                </video>
+                                                <span class="video-icon">🎥</span>
+                                              </div>`;
+                    } else {
+                        mediaBox.innerHTML = `<img src="${e.target.result}" class="thumbnail">`;
+                    }
+                };
+                reader.readAsDataURL(file);
+
+                uploadedFiles[index - 1] = file;
+
+                // Add a new media box for up to 4 files
+                if (uploadedFiles.length < 4 && document.getElementById(`media-box-${uploadedFiles.length + 1}`) === null) {
+                    addMediaBox(uploadedFiles.length + 1);
+                }
+            }
+        }
+
+        function addMediaBox(index) {
+            const mediaGrid = document.querySelector('.media-grid');
+            const mediaBox = document.createElement('div');
+            mediaBox.className = 'media-box';
+            mediaBox.id = `media-box-${index}`;
+            mediaBox.onclick = function () { triggerUpload(index); };
+            mediaBox.innerHTML = `<span class="placeholder">+</span>
+                                  <input type="file" id="upload-input-${index}" class="upload-input" accept="image/*,video/*" onchange="handleFileUpload(${index})" />`;
+            mediaGrid.appendChild(mediaBox);
+        }
+
+        document.getElementById("generate-llm").addEventListener("click", function () {
+            const freeText = document.getElementById("free-text").value;
+
+            if (uploadedFiles.length === 0 && !freeText) {
+                alert("Please upload at least one file or enter some text.");
+                return;
+            }
+
+            const formData = new FormData();
+            uploadedFiles.forEach((file, index) => {
+                formData.append(`media-${index}`, file);
+            });
+            formData.append("keywords", freeText);
+            formData.append("num_files", uploadedFiles.length || 0);
+
+            fetch('/llm/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayLLMOptions(data.captions);
+                displayHashtags(data.hashtags);
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        function displayLLMOptions(options) {
+            const optionsDiv = document.getElementById("caption-options");
+            optionsDiv.innerHTML = "";
+            options.forEach((option, index) => {
+                const optionDiv = document.createElement("div");
+                optionDiv.className = "caption-option";
+                optionDiv.innerText = option;
+                optionDiv.onclick = function () { selectOption(index); };
+                optionsDiv.appendChild(optionDiv);
+            });
+
+            document.getElementById("response-box").style.display = "block";
+            document.getElementById("copy").style.display = "inline";
+            document.getElementById("update").style.display = "inline";
+        }
+
+        function selectOption(index) {
+            const options = document.querySelectorAll(".caption-option");
+            options.forEach(option => option.classList.remove("selected"));
+            options[index].classList.add("selected");
+            selectedCaptionIndex = index;
+        }
+
+        document.getElementById("copy").addEventListener("click", function () {
+            const statusMessage = document.getElementById("status-message");
+            if (selectedCaptionIndex >= 0) {
+                var selectedCaption = document.querySelectorAll(".caption-option")[selectedCaptionIndex].innerText;
+                var hashtagText = document.getElementById("hashtag-box").innerHTML;
+                var allText = selectedCaption + '\n\n\n\n' + hashtagText; 
+                navigator.clipboard.writeText(allText).then(function () {
+                    statusMessage.textContent = "Caption (with Hashtags) copied to clipboard!";
+                    statusMessage.style.color = "green";
+                }, function (err) {
+                    statusMessage.textContent = "Failed to copy caption";
+                    statusMessage.style.color = "red";
+                });
+            } else {
+                statusMessage.textContent = "Please select a caption to copy.";
+                statusMessage.style.color = "red";
+            }
+        });
+
+        function displayHashtags(hashtags) {
+            const hashtagBox = document.getElementById("hashtag-box");
+            hashtagBox.innerHTML = hashtags.split(' ').map(tag => `<span class="hashtag">${tag}</span>`).join(' ');
+        }
+    </script>
+
+</body>
+
+</html>

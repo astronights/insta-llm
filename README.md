@@ -2,6 +2,10 @@
 
 This repository uses Large Language Modelling to generate content for Instagram marketing to boost engagement.
 
+**NOTE**: 
+- This app supports only Instagram business accounts.
+- The webpages rendered as part of this are optimized for mobile view, targeted towards business owners driving a significatn chunk of their operations via mobile.
+
 ## Running the Code
 
 ### **Prerequisites**

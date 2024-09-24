@@ -27,22 +27,31 @@ def generate_bio():
 @llm.route('/upload', methods=['POST'])
 def generate_upload():
 
-    file_data = request.files['media']
     keywords = request.form.get('keywords', '')
+    n_files = int(request.form.get('num_files', '0'))
 
-    filename = secure_filename(file_data.filename)
-    file_path = os.path.join('api/services/data', filename)
-    file_data.save(file_path)
+    paths = []
+    gen_files = []
+    
+    for i in range(n_files):
+        file_data = request.files[f'media-{i}']
+        filename = secure_filename(file_data.filename)
+        file_path = os.path.join('api/data', filename)
 
-    gen_file = genai.upload_file(path=file_path)
+        file_data.save(file_path)
+        paths.append(file_path)
+
+        gen_file = genai.upload_file(path=file_path)
+        gen_files.append(gen_file)
+    
     llm_prompt = upload.format(keywords=keywords)
 
-    response = model.generate_content([llm_prompt] + [gen_file]).text
-    os.remove(file_path)
+    response = model.generate_content([llm_prompt] + gen_files).text
+    
+    for fp in paths:
+        os.remove(fp)
 
     texts = literal_eval(response.lstrip('```json').strip('```'))
-
-    options = [t['headline'] + '\n\n' + t['description'] for t in texts['options']]
     hashtags = ' '.join(texts['hashtags'])
 
-    return {'captions': options, 'hashtags': hashtags}
+    return {'captions': texts['options'], 'hashtags': hashtags}
