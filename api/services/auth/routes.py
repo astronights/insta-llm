@@ -19,8 +19,8 @@ def callback():
     if not code:
         return "Error: Code not provided by Instagram", 400
 
-    token_url = app.config['ACCESS_TOKEN_URL']
-    payload = {
+    short_token_url = app.config['ACCESS_TOKEN_URL']
+    short_payload = {
         'client_id': app.config['CLIENT_ID'],
         'client_secret': app.config['CLIENT_SECRET'],
         'grant_type': 'authorization_code',
@@ -28,12 +28,23 @@ def callback():
         'code': code
     }
 
-    response = requests.post(token_url, data=payload)
-    if response.status_code != 200:
+    short_response = requests.post(short_token_url, data=short_payload)
+    if short_response.status_code != 200:
         return f"Failed to fetch access token. Response: {response.text}", 400
 
-    access_token_data = response.json()
+    short_lived_token = short_response.json().get('access_token')
 
-    session['access_token'] = access_token_data.get('access_token')
+    long_token_url = app.config['GRAPH_API_URL'] + '/access_token'
+    long_payload = {
+        'grant_type': 'ig_exchange_token',
+        'client_secret': app.config['CLIENT_SECRET'],
+        'access_token': short_lived_token
+    }
+
+    long_response = requests.get(long_token_url, params=long_payload)
+    if long_response.status_code != 200:
+        return f"Failed to fetch access token. Response: {long_response.text}", 400
+
+    session['access_token'] = long_response.json().get('access_token')
 
     return redirect(url_for('home.bio_page'))

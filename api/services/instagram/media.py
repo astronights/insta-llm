@@ -15,9 +15,14 @@ def get_media():
         'access_token': access_token
     }
 
+    print(posts_url, posts_params)
+
     posts_response = requests.get(posts_url, params=posts_params)
+    print(posts_response)
     if posts_response.status_code != 200:
         return f"Failed to fetch posts. Response: {posts_response.text}", 400
+    
+    
 
     posts_data = posts_response.json().get('data', [])
 
