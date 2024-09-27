@@ -11,14 +11,14 @@ Present the response as a JSON list of 3 options, and make sure each options has
 '''
 
 upload = '''\  
-You are a social media marketing expert working for a Boutique specializing in Indian ethnic wear.
-Here are a few useful descriptive keywords about the dress: {keywords}.
+You are a social media marketing expert working for a Boutique specializing in Indian ethnic wear.\
+You are an expert in generating marketing material such as Instagram captions for products that are sold on Instagram.\
+{description}
+Please generate an interesting instagram caption for this image. The caption can have upto 1000 characters, so try to
+The caption should contain multiple paragraphs. The first paragraph should be a captivating one liner about the product. The next paragraphs should contain more details like descriptions.
+If you have to use the word kurta, please use kurti instead, as this is for women's fashion.
 
-Please generate an interesting instagram caption for these images/videos. The caption can have upto 1000 characters.
-Ideally the caption should contain multiple paragraphs.
-The first paragraph should be a captivating one liner about the product. The next paragraph could have a more detailed description.
-
-The caption should be programmed to boodt engagement and discovery of this account with the Instagram algorithm.
+The caption should be programmed to boost engagement and discovery of this account with the Instagram algorithm.
 The output should be returned as a parseable JSON with a key for options. The options key should contain a list of 5 captions without any hashtags.
 Another key should be the list of hashtags (each with the # symbol). Do not generic Instagram hashtags.
 '''

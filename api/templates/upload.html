@@ -54,7 +54,7 @@
 
         function triggerUpload(index) {
             const input = document.getElementById(`upload-input-${index}`);
-            input.value = '';  // Reset file input so it can re-trigger file selection
+            // input.value = '';  // Reset file input so it can re-trigger file selection
             input.click();
         }
 
@@ -73,7 +73,7 @@
                 reader.onload = function (e) {
                     if (file.type.startsWith('video/')) {
                         mediaBox.innerHTML = `<div class="video-thumbnail">
-                                                <video width="72" height="72" muted autoplay loop>
+                                                <video width="72" height="72" poster="placeholder.png" muted autoplay loop>
                                                     <source src="${e.target.result}" type="${file.type}">
                                                 </video>
                                                 <span class="video-icon">🎥</span>

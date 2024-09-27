@@ -43,8 +43,12 @@ def generate_upload():
 
         gen_file = genai.upload_file(path=file_path)
         gen_files.append(gen_file)
+
+    description = '\n' if len(keywords) == 0 else f'''\
+    Here are a few keywords provided by the designer about this product: {keywords}. \n
+    '''
     
-    llm_prompt = upload.format(keywords=keywords)
+    llm_prompt = upload.format(description=description)
 
     response = model.generate_content([llm_prompt] + gen_files).text
     
