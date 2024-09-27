@@ -15,6 +15,8 @@ def check_authentication():
         profile = requests.get(url_for('profile.get_profile', _external=True), 
                             params=profile_params).json()
         session['profile_data'] = profile
+        f = open(f'./api/data/{profile["id"]}.txt', "a")
+        f.close()
 
 @home.route('/')
 def bio_page():
@@ -28,10 +30,11 @@ def upload_page():
 @home.route('/posts')
 def posts_page():
     access_token = session.get('access_token')
-    profile = session.get('profile_data')
     
-    media_params = {'business_id': profile['id'], 'access_token': access_token} 
-    media = requests.get(url_for('media.get_media', _external=True), 
-                        params=media_params).json()
+    media_params = {'access_token': access_token, 'url': request.args.get('next_page', None)} 
+    media = requests.get(url_for('media.get_media', _external=True), params=media_params).json()
+
+    posts = media['data']
+    next_page = media['paging']['next']
     
-    return media
+    return render_template('posts.html', posts=posts, next_page=next_page)

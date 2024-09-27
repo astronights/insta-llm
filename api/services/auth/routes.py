@@ -30,7 +30,7 @@ def callback():
 
     short_response = requests.post(short_token_url, data=short_payload)
     if short_response.status_code != 200:
-        return f"Failed to fetch access token. Response: {response.text}", 400
+        return f"Failed to fetch access token. Response: {short_response.text}", 400
 
     short_lived_token = short_response.json().get('access_token')
 

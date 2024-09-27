@@ -5,22 +5,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/posts_styles.css') }}">
-    <title>Upload Media</title>
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <title>Update Captions</title>
 </head>
 
 <body>
 
     <!-- Upload Tab -->
     <div id="upload" class="content">
-        <h2>Upload Your Media</h2>
+        <h2>Update Captions</h2>
 
-        <div class="media-grid">
-            <div class="media-box" id="media-box-1" onclick="triggerUpload(1)">
-                <span class="placeholder">+</span>
-                <input type="file" id="upload-input-1" class="upload-input" accept="image/*,video/*"
-                    onchange="handleFileUpload(1)" />
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                {% for post in posts %}
+                <div class="swiper-slide">
+                    <img src="{{ post.media_url }}" alt="Post Image" style="max-width:100%;">
+                    <p>{{ post.caption }}</p>
+                    <input type="text" id="caption_{{ post.id }}" placeholder="Update caption"
+                        value="{{ post.caption }}">
+                    <button onclick="updateCaption('{{ post.id }}')">Update Caption</button>
+                </div>
+                {% endfor %}
             </div>
         </div>
+
 
         <textarea id="free-text" rows="2" placeholder="Enter description here..."></textarea>
 
@@ -77,6 +86,11 @@
         let selectedCaptionIndex = -1;
         let selectedSizes = [];
         let loadingDotsInterval;
+
+        const swiper = new Swiper('.swiper-container', {
+            slidesPerView: 1,
+            spaceBetween: 10,
+        });
 
         function toggleEmojiGrid() {
             document.getElementById('dropDown').style.display = 'block';
