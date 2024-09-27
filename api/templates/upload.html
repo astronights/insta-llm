@@ -17,19 +17,48 @@
         <div class="media-grid">
             <div class="media-box" id="media-box-1" onclick="triggerUpload(1)">
                 <span class="placeholder">+</span>
-                <input type="file" id="upload-input-1" class="upload-input" accept="image/*,video/*" onchange="handleFileUpload(1)" />
+                <input type="file" id="upload-input-1" class="upload-input" accept="image/*,video/*"
+                    onchange="handleFileUpload(1)" />
             </div>
         </div>
 
         <textarea id="free-text" rows="2" placeholder="Enter description here..."></textarea>
 
         <button id="generate-llm">Generate with LLM</button>
+        <span id="loading-dots" style="display:none;font-size:28px">.</span>
 
         <div id="response-box">
             <h3>Select a caption:</h3>
             <div id="caption-options"></div>
-            <h3>Hashtags:</h3>
+
+            <div class="sizes-section">
+                <h3>Sizes:</h3>
+                <div id="size-options" class="size-box">
+                    <div class="size-option" onclick="selectSize(36)">36</div>
+                    <div class="size-option" onclick="selectSize(38)">38</div>
+                    <div class="size-option" onclick="selectSize(40)">40</div>
+                    <div class="size-option" onclick="selectSize(42)">42</div>
+                    <div class="size-option" onclick="selectSize(44)">44</div>
+                    <div class="size-option" onclick="selectSize(46)">46</div>
+                </div>
+            </div>
+
+            <div class="emoji-section">
+                <h3>Details Emoji:</h3>
+                <div class="dropdown-content" id='dropDown'>
+                    <div class="emoji-grid" id="emojiGrid"></div>
+                </div>
+                <div class="emoji-option" onclick="toggleEmojiGrid()" style="margin-left: 5px;"> - </div>
+            </div>
+
+            <div class="hashtags-section">
+                <h3>Hashtags:</h3>
+                <input type="text" id="hashtag-input" placeholder="Add Hashtag" class="hashtag-input">
+                <button id="add-hashtag-btn" onclick="addHashtag()">+</button>
+            </div>
+
             <div id="hashtag-box" class="hashtag-box"></div>
+
             <button id="copy" style="display: none;">Copy</button>
             <button id="update" style="display: none;" disabled>Update</button>
             <p id="status-message" style="color: green; margin-top: 10px;"></p>
@@ -46,6 +75,36 @@
     <script>
         let uploadedFiles = [];
         let selectedCaptionIndex = -1;
+        let selectedSizes = [];
+        let loadingDotsInterval;
+
+        function toggleEmojiGrid() {
+            document.getElementById('dropDown').style.display = 'block';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch('/static/emojis.json')
+                .then(response => response.json())
+                .then(data => {
+                    var emojis = Object.values(data).flat();
+                    emojis.push('-');
+                    emojis.forEach(emoji => {
+                        const emojiDiv = document.createElement('div');
+                        emojiDiv.className = 'emoji-pick';
+                        emojiDiv.innerText = emoji;
+
+                        emojiDiv.addEventListener('click', () => {
+                            document.querySelector('.emoji-option').innerText = emoji;
+                            document.getElementById('dropDown').style.display = 'none';
+                        });
+
+                        emojiGrid.appendChild(emojiDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading emojis:', error);
+                });
+        });
 
         function showTab(tab) {
             const url = `/home/${tab}`;
@@ -54,7 +113,6 @@
 
         function triggerUpload(index) {
             const input = document.getElementById(`upload-input-${index}`);
-            // input.value = '';  // Reset file input so it can re-trigger file selection
             input.click();
         }
 
@@ -86,7 +144,6 @@
 
                 uploadedFiles[index - 1] = file;
 
-                // Add a new media box for up to 4 files
                 if (uploadedFiles.length < 4 && document.getElementById(`media-box-${uploadedFiles.length + 1}`) === null) {
                     addMediaBox(uploadedFiles.length + 1);
                 }
@@ -104,13 +161,32 @@
             mediaGrid.appendChild(mediaBox);
         }
 
+        function startLoadingDots() {
+            const loadingDots = document.getElementById('loading-dots');
+            loadingDots.style.display = 'inline';
+            let dots = '';
+            loadingDotsInterval = setInterval(() => {
+                dots = dots.length >= 3 ? '' : dots + '.';
+                loadingDots.textContent = dots;
+            }, 500);
+        }
+
+        function stopLoadingDots() {
+            clearInterval(loadingDotsInterval);
+            document.getElementById('loading-dots').style.display = 'none';
+        }
+
         document.getElementById("generate-llm").addEventListener("click", function () {
-            const freeText = document.getElementById("free-text").value;
+            const freeText = document.getElementById("free-text").value.trim();
 
             if (uploadedFiles.length === 0 && !freeText) {
                 alert("Please upload at least one file or enter some text.");
                 return;
             }
+
+            const generateButton = document.getElementById("generate-llm");
+            generateButton.disabled = true;
+            startLoadingDots();
 
             const formData = new FormData();
             uploadedFiles.forEach((file, index) => {
@@ -123,12 +199,18 @@
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                displayLLMOptions(data.captions);
-                displayHashtags(data.hashtags);
-            })
-            .catch(error => console.error('Error:', error));
+                .then(response => response.json())
+                .then(data => {
+                    displayLLMOptions(data.captions);
+                    displayHashtags(data.hashtags);
+                    stopLoadingDots();
+                    generateButton.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    stopLoadingDots();
+                    generateButton.disabled = false;
+                });
         });
 
         function displayLLMOptions(options) {
@@ -154,28 +236,77 @@
             selectedCaptionIndex = index;
         }
 
+        function selectSize(size) {
+            const sizeDivs = document.querySelectorAll(".size-option");
+            const index = selectedSizes.indexOf(size);
+
+            if (index === -1) {
+                selectedSizes.push(size);
+            } else {
+                selectedSizes.splice(index, 1);
+            }
+
+            sizeDivs.forEach(sizeDiv => {
+                const currentSize = parseInt(sizeDiv.innerText, 10);
+                if (selectedSizes.includes(currentSize)) {
+                    sizeDiv.classList.add("selected");
+                } else {
+                    sizeDiv.classList.remove("selected");
+                }
+            });
+        }
+
         document.getElementById("copy").addEventListener("click", function () {
             const statusMessage = document.getElementById("status-message");
-            if (selectedCaptionIndex >= 0) {
-                var selectedCaption = document.querySelectorAll(".caption-option")[selectedCaptionIndex].innerText;
-                var hashtagText = document.getElementById("hashtag-box").innerHTML;
-                var allText = selectedCaption + '\n\n\n\n' + hashtagText; 
-                navigator.clipboard.writeText(allText).then(function () {
-                    statusMessage.textContent = "Caption (with Hashtags) copied to clipboard!";
+            const selectedCaption = document.querySelectorAll(".caption-option")[selectedCaptionIndex]?.innerText || '';
+            const selectedSizeText = 'Sizes Available: ' + selectedSizes.sort().join(" | ");
+            const emoji = document.querySelector('.emoji-option').innerText.replace('-', '').trim();
+            const contactText = `${emoji} Feel free to message me for pricing and more details ${emoji}`.trim()
+            const hashtagText = Array.from(document.querySelectorAll(".hashtag")).map(tag => tag.innerText.slice(0, -1).trim()).join(" ");
+
+            const allText = `${selectedCaption}\n\n${selectedSizeText}\n${contactText}\n\n${hashtagText}`;
+
+            if (selectedCaption && selectedSizes.length && hashtagText) {
+                navigator.clipboard.writeText(allText).then(() => {
+                    statusMessage.textContent = "Text copied to clipboard!";
                     statusMessage.style.color = "green";
-                }, function (err) {
-                    statusMessage.textContent = "Failed to copy caption";
+                }).catch(() => {
+                    statusMessage.textContent = "Failed to copy text";
                     statusMessage.style.color = "red";
                 });
             } else {
-                statusMessage.textContent = "Please select a caption to copy.";
+                statusMessage.textContent = "Nothing to copy!";
                 statusMessage.style.color = "red";
             }
         });
 
         function displayHashtags(hashtags) {
             const hashtagBox = document.getElementById("hashtag-box");
-            hashtagBox.innerHTML = hashtags.split(' ').map(tag => `<span class="hashtag">${tag}</span>`).join(' ');
+            hashtagBox.innerHTML = hashtags.split(' ').map(tag => `<span class="hashtag">${tag} <span class="delete-hashtag" onclick="deleteHashtag(this)">x</span></span>`).join(' ');
+        }
+
+        document.getElementById("hashtag-input").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addHashtag();
+            }
+        });
+
+        function addHashtag() {
+            const input = document.getElementById("hashtag-input");
+            const hashtag = input.value.trim();
+            if (hashtag !== "") {
+                const hashtagBox = document.getElementById("hashtag-box");
+                const newHashtagDiv = document.createElement("div");
+                newHashtagDiv.className = "hashtag";
+                newHashtagDiv.innerHTML = `#${hashtag} <span class="delete-hashtag" onclick="deleteHashtag(this)">x</span>`;
+                hashtagBox.appendChild(newHashtagDiv);
+                input.value = "";
+            }
+        }
+
+        function deleteHashtag(element) {
+            element.parentElement.remove();
         }
     </script>
 

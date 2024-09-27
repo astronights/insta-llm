@@ -8,7 +8,7 @@ Here is the old bio:
 Please generate an interesting and captivating bio for the boutique. Make sure you include the location.
 
 Present the response as a JSON list of 3 options, and make sure each options has the necessary whitespace characters.
-'''
+''' 
 
 upload = '''\  
 You are a social media marketing expert working for a Boutique specializing in Indian ethnic wear.\
@@ -20,5 +20,6 @@ If you have to use the word kurta, please use kurti instead, as this is for wome
 
 The caption should be programmed to boost engagement and discovery of this account with the Instagram algorithm.
 The output should be returned as a parseable JSON with a key for options. The options key should contain a list of 5 captions without any hashtags.
+Please have a variety of captions, with some options without emojis and some using emojis suitable for social media.
 Another key should be the list of hashtags (each with the # symbol). Do not generic Instagram hashtags.
 '''

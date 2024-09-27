@@ -6,7 +6,7 @@ import google.generativeai as genai
 import os
 
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-1.5-flash') 
 
 from ast import literal_eval
 import os
@@ -17,7 +17,7 @@ llm = Blueprint('llm', __name__)
 def generate_bio():
     old_bio = request.form.get('bio')
     
-    llm_prompt = bio.format(old_bio=old_bio)
+    llm_prompt = bio.format(old_bio=old_bio)    
     options = model.generate_content(llm_prompt).text.lstrip('```json').strip('```')
 
     texts = [v['bio'] for v in literal_eval(options)]
@@ -48,12 +48,12 @@ def generate_upload():
     Here are a few keywords provided by the designer about this product: {keywords}. \n
     '''
     
-    llm_prompt = upload.format(description=description)
+    llm_prompt = upload.format(description=description)    
 
     response = model.generate_content([llm_prompt] + gen_files).text
     
     for fp in paths:
-        os.remove(fp)
+        os.remove(fp)   
 
     texts = literal_eval(response.lstrip('```json').strip('```'))
     hashtags = ' '.join(texts['hashtags'])

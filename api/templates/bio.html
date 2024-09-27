@@ -16,11 +16,12 @@
         <p>[{{ profile.account_type }}]</p>
         <p>{{ profile.biography|replace('\n', '<br>')|safe }}</p>
         <button id="generate-llm">Generate with LLM</button>
+        <span id="loading-dots" style="display:none;font-size:28px">.</span>
         <div id="response-box" style="display: none;">
             <h3>Select a new bio:</h3>
             <div id="bio-options"></div>
             <button id="copy" style="display: none;">Copy</button>
-            <button id="update" style="display: none;" disabled>Submit</button>
+            <button id="update" style="display: none;" disabled>Update</button>
             <p id="status-message" style="color: green; margin-top: 10px;"></p>
         </div>
     </div>
@@ -33,13 +34,34 @@
     </div>
 
     <script>
+        let loadingDotsInterval;
+
         function showTab(tab) {
             const url = `/home/${tab}`;
             window.location.href = url;
         }
 
+        function startLoadingDots() {
+            const loadingDots = document.getElementById('loading-dots');
+            loadingDots.style.display = 'inline';
+            let dots = '';
+            loadingDotsInterval = setInterval(() => {
+                dots = dots.length >= 3 ? '' : dots + '.';
+                loadingDots.textContent = dots;
+            }, 500);
+        }
+
+        function stopLoadingDots() {
+            clearInterval(loadingDotsInterval);
+            document.getElementById('loading-dots').style.display = 'none';
+        }
+
         document.getElementById("generate-llm").addEventListener("click", function () {
             var bioText = "{{ profile.biography|replace('<br>', '\\n')|replace('\n', '\\n') }}";
+
+            const generateButton = document.getElementById("generate-llm");
+            generateButton.disabled = true;
+            startLoadingDots();
 
             fetch('/llm/bio', {
                 method: 'POST',
@@ -61,6 +83,8 @@
                         };
                         bioOptionsDiv.appendChild(bioDiv);
                     });
+                    stopLoadingDots();
+                    generateButton.disabled = false;
 
                     document.getElementById("response-box").style.display = "block";
                     document.getElementById("update").style.display = "inline";

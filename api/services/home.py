@@ -12,7 +12,7 @@ def check_authentication():
         # Redirect to the login page if not authenticated
         return redirect(url_for('auth.login'))
     
-    if not session['profile_data']:
+    if not session.get('profile_data'):
         profile_params = {'access_token': access_token}
         profile = requests.get(url_for('profile.get_profile', _external=True), 
                             params=profile_params).json()
