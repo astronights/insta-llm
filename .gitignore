@@ -8,5 +8,4 @@ __pycache__
 insta_llm
 
 # Data
-**/data/*.txt
-flask_session/
+**/data/*.mp4

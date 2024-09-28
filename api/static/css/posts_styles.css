@@ -17,6 +17,7 @@ body {
     display: flex;
     justify-content: space-around;
     background-color: #333;
+    z-index: 1000;
 }
 
 .tab-bar button {
@@ -33,56 +34,10 @@ body {
     background-color: #4CAF50;
 }
 
-.media-grid {
-    display: flex;
-    gap: 10px;
-    padding-bottom: 5px;
-}
-
-.media-box {
-    width: 72px;
-    height: 72px;
-    border: 2px dashed #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    cursor: pointer;
-}
-
-.placeholder {
-    font-size: 24px;
-    color: #999;
-}
-
-.upload-input {
-    display: none;
-}
-
-.thumbnail {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.video-thumbnail {
-    position: relative;
-}
-
-.video-icon {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    font-size: 18px;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    padding: 2px 4px;
-    border-radius: 3px;
-}
-
 textarea {
-    width: 95%;
+    width: 90%;
     padding: 10px;
+    margin-top: 10px;
     font-size: 16px;
     margin-bottom: 5px;
 }
@@ -150,7 +105,6 @@ textarea {
 .post-slide p.old-caption {
     word-break: break-word;  /* Ensures long words/hashtags break and wrap */
     overflow-wrap: break-word; /* Fallback for older browsers */
-    white-space: normal; /* Ensures text can wrap normally */
 }
 
 .caption-option, .size-option, .emoji-option {
@@ -256,9 +210,11 @@ textarea {
 
 .swiper-container {
     width: 100%;
-    height: auto; /* Adjust height to auto to fit media content */
     max-width: 400px;
     margin: 0 auto;
+    overflow-x: hidden;
+    position: relative;
+    padding-bottom: 40px;
 }
 
 .swiper-slide {
@@ -269,9 +225,13 @@ textarea {
     text-align: center;
 }
 
+:root {
+    --swiper-pagination-bullet-size: 10px;
+}
+
 .swiper-slide img, 
 .swiper-slide video {
-    max-width: 100%; /* Ensure images/videos do not exceed container width */
+    max-width: 100%;
     border-radius: 10px;
     margin-bottom: 10px;
 }

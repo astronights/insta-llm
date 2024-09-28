@@ -74,7 +74,8 @@ def generate_posts():
 
     for i in range(n_files):
         file_url = request.form[f'media-url-{i}']
-        filename = str(uuid.uuid4())
+        extension = file_url.split('?')[0].split('.')[-1]
+        filename = str(uuid.uuid4()) + '.' + extension
         file_path = os.path.join(os.environ['TMP_DIR'], filename)
 
         response = requests.get(file_url)
@@ -94,8 +95,5 @@ def generate_posts():
 
     texts = literal_eval(response.lstrip('```json').strip('```'))
     hashtags = ' '.join(texts['hashtags'])
-
-    print(gen_files)
-    print(texts)
 
     return {'captions': texts['options'], 'hashtags': hashtags}

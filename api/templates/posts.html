@@ -35,6 +35,7 @@
         </div>
 
         <div class="swiper-container posts-slider">
+            <div class="swiper-pagination"></div>
             <div class="swiper-wrapper">
                 {% for post in posts %}
                 <div class="swiper-slide post-slide">
@@ -59,6 +60,7 @@
                     <img src="{{ post.media_url }}" alt="Post Image">
                     {% endif %}
                     {% endif %}
+                    <p style="text-align: left;">Date Posted: {{ post.formatted_timestamp }}</p>
                     <h3 style="text-align: left;margin: 0;">Old Caption</h3>
                     {% if post.caption %}
                     <p class="old-caption">{{ post.caption }}</p>
@@ -68,7 +70,6 @@
                 </div>
                 {% endfor %}
             </div>
-            <div class="swiper-pagination posts-pagination"></div>
         </div>
 
         <textarea id="free-text" rows="2" placeholder="Enter description here..."></textarea>
@@ -128,7 +129,7 @@
         let loadingDotsInterval;
 
         function loadPage(direction) {
-            if (['previous', 'next'].includes(direction)) {
+            if (direction === 'next' || direction === 'previous') {
                 const url = `/home/posts/${direction}`;
                 window.location.href = url;
             }
@@ -144,7 +145,13 @@
             new Swiper(postSlider, {
                 slidesPerView: 1,
                 spaceBetween: 20,
-                allowTouchMove: true, // Enable swiping for post slider
+                allowTouchMove: true,
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                    dynamicBullets: true,
+                    dynamicMainBullets: 13,
+                },
             });
         });
 
@@ -246,68 +253,124 @@
                 });
         });
 
-        function displayLLMOptions(captions) {
-            const captionOptionsDiv = document.getElementById("caption-options");
-            captionOptionsDiv.innerHTML = '';
-
-            captions.forEach((caption, index) => {
-                const captionDiv = document.createElement("div");
-                captionDiv.className = "caption-option";
-                captionDiv.innerText = caption;
-                captionDiv.onclick = () => {
-                    selectCaption(index);
-                };
-                captionOptionsDiv.appendChild(captionDiv);
+        function displayLLMOptions(options) {
+            const optionsDiv = document.getElementById("caption-options");
+            optionsDiv.innerHTML = "";
+            options.forEach((option, index) => {
+                const optionDiv = document.createElement("div");
+                optionDiv.className = "caption-option";
+                optionDiv.innerText = option;
+                optionDiv.onclick = function () { selectOption(index); };
+                optionsDiv.appendChild(optionDiv);
             });
+
+            document.getElementById("response-box").style.display = "block";
+            document.getElementById("copy").style.display = "inline";
+            document.getElementById("update").style.display = "inline";
         }
 
-        function displayHashtags(hashtags) {
-            const hashtagBox = document.getElementById("hashtag-box");
-            hashtagBox.innerHTML = hashtags.map(hashtag => `<div class="hashtag">${hashtag}</div>`).join('');
-        }
-
-        function selectCaption(index) {
-            const captionOptionsDiv = document.getElementById("caption-options");
-            const selectedCaption = captionOptionsDiv.children[index];
-
-            if (selectedCaptionIndex === index) {
-                selectedCaption.classList.remove('selected');
-                selectedCaptionIndex = -1;
-                document.getElementById("copy").style.display = "none";
-                document.getElementById("update").style.display = "none";
-            } else {
-                for (let i = 0; i < captionOptionsDiv.children.length; i++) {
-                    captionOptionsDiv.children[i].classList.remove('selected');
-                }
-                selectedCaption.classList.add('selected');
-                selectedCaptionIndex = index;
-                document.getElementById("copy").style.display = "inline";
-                document.getElementById("update").style.display = "inline";
-            }
-        }
-
-        function addHashtag() {
-            const hashtagInput = document.getElementById("hashtag-input");
-            const hashtag = hashtagInput.value.trim();
-            if (hashtag) {
-                const hashtagBox = document.getElementById("hashtag-box");
-                const hashtagDiv = document.createElement("div");
-                hashtagDiv.className = "hashtag";
-                hashtagDiv.innerText = `#${hashtag}`;
-                hashtagBox.appendChild(hashtagDiv);
-                hashtagInput.value = "";
-            }
+        function selectOption(index) {
+            const options = document.querySelectorAll(".caption-option");
+            options.forEach(option => option.classList.remove("selected"));
+            options[index].classList.add("selected");
+            selectedCaptionIndex = index;
         }
 
         function selectSize(size) {
-            const sizeOptionDiv = document.querySelector(`.size-option[data-size="${size}"]`);
-            if (selectedSizes.includes(size)) {
-                selectedSizes = selectedSizes.filter(s => s !== size);
-                sizeOptionDiv.classList.remove('selected');
-            } else {
+            const sizeDivs = document.querySelectorAll(".size-option");
+            const index = selectedSizes.indexOf(size);
+
+            if (index === -1) {
                 selectedSizes.push(size);
-                sizeOptionDiv.classList.add('selected');
+            } else {
+                selectedSizes.splice(index, 1);
             }
+
+            sizeDivs.forEach(sizeDiv => {
+                const currentSize = parseInt(sizeDiv.innerText, 10);
+                if (selectedSizes.includes(currentSize)) {
+                    sizeDiv.classList.add("selected");
+                } else {
+                    sizeDiv.classList.remove("selected");
+                }
+            });
+        }
+
+        document.getElementById("copy").addEventListener("click", function () {
+            const statusMessage = document.getElementById("status-message");
+            const selectedCaption = document.querySelectorAll(".caption-option")[selectedCaptionIndex]?.innerText || '';
+            const selectedSizeText = 'Sizes Available: ' + selectedSizes.sort().join(" | ");
+            const emoji = document.querySelector('.emoji-option').innerText.replace('-', '').trim();
+            const contactText = `${emoji} Feel free to message me for pricing and more details ${emoji}`.trim()
+            const hashtagText = Array.from(document.querySelectorAll(".hashtag")).map(tag => tag.innerText.slice(0, -1).trim()).join(" ");
+
+            const allText = `${selectedCaption}\n\n${selectedSizeText}\n${contactText}\n\n${hashtagText}`;
+
+            if (selectedCaption && selectedSizes.length && hashtagText) {
+                navigator.clipboard.writeText(allText).then(() => {
+                    statusMessage.textContent = "Text copied to clipboard!";
+                    statusMessage.style.color = "green";
+                }).catch(() => {
+                    statusMessage.textContent = "Failed to copy text";
+                    statusMessage.style.color = "red";
+                });
+            } else {
+                statusMessage.textContent = "Nothing to copy!";
+                statusMessage.style.color = "red";
+            }
+        });
+
+        document.getElementById("copy").addEventListener("click", function () {
+            const statusMessage = document.getElementById("status-message");
+            const selectedCaption = document.querySelectorAll(".caption-option")[selectedCaptionIndex]?.innerText || '';
+            const selectedSizeText = 'Sizes Available: ' + selectedSizes.sort().join(" | ");
+            const emoji = document.querySelector('.emoji-option').innerText.replace('-', '').trim();
+            const contactText = `${emoji} Feel free to message me for pricing and more details ${emoji}`.trim()
+            const hashtagText = Array.from(document.querySelectorAll(".hashtag")).map(tag => tag.innerText.slice(0, -1).trim()).join(" ");
+
+            const allText = `${selectedCaption}\n\n${selectedSizeText}\n${contactText}\n\n${hashtagText}`;
+
+            if (selectedCaption && selectedSizes.length && hashtagText) {
+                navigator.clipboard.writeText(allText).then(() => {
+                    statusMessage.textContent = "Caption updated!";
+                    statusMessage.style.color = "green";
+                }).catch(() => {
+                    statusMessage.textContent = "Failed to update caption";
+                    statusMessage.style.color = "red";
+                });
+            } else {
+                statusMessage.textContent = "Nothing to update!";
+                statusMessage.style.color = "red";
+            }
+        });
+
+        function displayHashtags(hashtags) {
+            const hashtagBox = document.getElementById("hashtag-box");
+            hashtagBox.innerHTML = hashtags.split(' ').map(tag => `<span class="hashtag">${tag} <span class="delete-hashtag" onclick="deleteHashtag(this)">x</span></span>`).join(' ');
+        }
+
+        function addHashtag() {
+            const input = document.getElementById("hashtag-input");
+            const hashtag = input.value.trim();
+            if (hashtag !== "") {
+                const hashtagBox = document.getElementById("hashtag-box");
+                const newHashtagDiv = document.createElement("div");
+                newHashtagDiv.className = "hashtag";
+                newHashtagDiv.innerHTML = `#${hashtag} <span class="delete-hashtag" onclick="deleteHashtag(this)">x</span>`;
+                hashtagBox.appendChild(newHashtagDiv);
+                input.value = "";
+            }
+        }
+
+        document.getElementById("hashtag-input").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addHashtag();
+            }
+        });
+
+        function deleteHashtag(element) {
+            element.parentElement.remove();
         }
 
     </script>
