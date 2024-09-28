@@ -10,7 +10,7 @@ def login():
                 + '?enable_fb_login=0&force_authentication=1&response_type=code'
                 + '&client_id=' + app.config['CLIENT_ID']
                 + '&redirect_uri=' + app.config['REDIRECT_URI']
-                + '&scope=instagram_business_basic,instagram_business_content_publish')
+                + '&scope=instagram_business_basic,instagram_business_content_publish,instagram_business_manage_comments')
     
     return redirect(auth_url) 
 

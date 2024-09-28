@@ -14,22 +14,27 @@ def get_media():
     else:
         posts_url = app.config['GRAPH_API_URL']+ '/me/media'
         posts_params = {
-            'fields': 'id,caption,media_url,media_type,timestamp,children{id,media_url,media_type}',
+            'fields': 'id,caption,media_url,media_type,timestamp,children{id,media_url,media_type},permalink',
             'access_token': access_token
         }
         posts_response = requests.get(posts_url, params=posts_params)
-    
+
     if posts_response.status_code != 200:
         return f"Failed to fetch posts. Response: {posts_response.text}", 400
 
     return posts_response.json()
 
-@media.route('/<media_id>/edit_caption', methods=['POST'])
+@media.route('/update-caption/<media_id>', methods=['POST'])
 def edit_caption(media_id):
-    new_caption = request.form.get('caption')
+    new_caption = request.json.get('caption')
     access_token = session.get('access_token')
     
     url = f"{app.config['GRAPH_API_URL']}/{media_id}"
     payload = {'caption': new_caption}
-    response = requests.post(url, params={'access_token': access_token}, data=payload)
+    params = {'access_token': access_token, 'comment_enabled': True}
+
+    print(url, payload, access_token)
+    response = requests.post(url, params=params, data=payload)
+
+    print(response.json())
     return response.json()

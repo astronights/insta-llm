@@ -38,7 +38,7 @@
             <div class="swiper-pagination"></div>
             <div class="swiper-wrapper">
                 {% for post in posts %}
-                <div class="swiper-slide post-slide">
+                <div class="swiper-slide post-slide" post-id="{{ post.id }}">
 
                     {% if post.media_type == 'CAROUSEL_ALBUM' %}
                     <div class="carousel-display">
@@ -60,6 +60,7 @@
                     <img src="{{ post.media_url }}" alt="Post Image">
                     {% endif %}
                     {% endif %}
+                    <p style="text-align: left;">Link: <a href='{{ post.permalink }}'>Post</a></p>
                     <p style="text-align: left;">Date Posted: {{ post.formatted_timestamp }}</p>
                     <h3 style="text-align: left;margin: 0;">Old Caption</h3>
                     {% if post.caption %}
@@ -110,7 +111,7 @@
             <div id="hashtag-box" class="hashtag-box"></div>
 
             <button id="copy" style="display: none;">Copy</button>
-            <button id="update" style="display: none;" disabled>Update</button>
+            <button id="update" style="display: none;">Update</button>
             <p id="status-message" style="color: green; margin-top: 10px;"></p>
         </div>
     </div>
@@ -342,8 +343,11 @@
             }
         });
 
-        document.getElementById("copy").addEventListener("click", function () {
+        document.getElementById("update").addEventListener("click", function () {
             const statusMessage = document.getElementById("status-message");
+            const activeSlide = document.querySelector('.swiper-slide-active');
+            const postId = activeSlide.getAttribute('post-id');
+
             const selectedCaption = document.querySelectorAll(".caption-option")[selectedCaptionIndex]?.innerText || '';
             const selectedSizeText = 'Sizes Available: ' + selectedSizes.sort().join(" | ");
             const emoji = document.querySelector('.emoji-option').innerText.replace('-', '').trim();
@@ -353,7 +357,13 @@
             const allText = `${selectedCaption}\n\n${selectedSizeText}\n${contactText}\n\n${hashtagText}`;
 
             if (selectedCaption && selectedSizes.length && hashtagText) {
-                navigator.clipboard.writeText(allText).then(() => {
+                fetch(`/media/update-caption/${postId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ caption: allText }),
+                }).then(() => {
                     statusMessage.textContent = "Caption updated!";
                     statusMessage.style.color = "green";
                 }).catch(() => {
