@@ -1,5 +1,6 @@
 from flask import Blueprint, request, redirect, session, url_for, current_app as app
 import requests
+import time
 
 auth = Blueprint('auth', __name__)
 
@@ -45,6 +46,9 @@ def callback():
     if long_response.status_code != 200:
         return f"Failed to fetch access token. Response: {long_response.text}", 400
 
-    session['access_token'] = long_response.json().get('access_token')
+    long_response = long_response.json()
+    session['access_token'] = long_response.get('access_token')
+    session['expires_in'] = long_response.get('expires_in')
+    session['token_created_at'] = int(time.time())
 
     return redirect(url_for('home.bio_page'))

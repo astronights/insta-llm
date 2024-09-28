@@ -1,6 +1,6 @@
 from flask import Blueprint, session, request, redirect, url_for, jsonify, current_app as app, render_template
 import requests
-import os
+import time
 
 home = Blueprint('home', __name__)
 
@@ -9,6 +9,10 @@ def check_authentication():
     access_token = session.get('access_token')
     if not access_token:
         return redirect(url_for('auth.login'))
+    
+    expires_in, created_time = session.get('expires_in'), session.get('token_created_at')
+    # if created_time + expires_in - int(time.time()) < 3000:
+    #     print('Need to refresh token')
     
     if not session.get('profile_data'):
         profile_params = {'access_token': access_token}
