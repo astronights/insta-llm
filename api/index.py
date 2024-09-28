@@ -4,9 +4,8 @@ from .services.instagram.post import post
 from .services.auth.routes import auth
 from .services.home import home
 from .services.genai.llm import llm
-from .config import MetaConfig, LLMConfig
+from .config import MetaConfig, LLMConfig, RedisConfig
 
-import os
 from uuid import uuid4
 from redis import Redis
 
@@ -20,6 +19,7 @@ def create_app():
     # Load configuration (API keys, secrets)
     app.config.from_object(MetaConfig)
     app.config.from_object(LLMConfig)
+    app.config.from_object(RedisConfig)
 
     # Register blueprints
     app.register_blueprint(home, url_prefix='/home')
@@ -30,7 +30,9 @@ def create_app():
     app.register_blueprint(llm, url_prefix='/llm')
 
     app.config['SESSION_TYPE'] = 'redis'
-    app.config['SESSION_REDIS'] = Redis.from_url(os.environ['REDIS_URI'])
+    app.config['SESSION_REDIS'] = Redis(host=app.config['HOST'], port=app.config['PORT'], 
+                                        password=app.config['PASS'])
+
     Session(app)
 
     @app.route('/')
