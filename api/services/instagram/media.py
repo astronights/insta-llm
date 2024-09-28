@@ -12,7 +12,7 @@ def get_media():
     if page_url: 
         posts_response = requests.get(page_url)
     else:
-        posts_url = app.config['GRAPH_API_URL']+ '/me/media'
+        posts_url = app.config['IG_GRAPH_API_URL']+ '/me/media'
         posts_params = {
             'fields': 'id,caption,media_url,media_type,timestamp,children{id,media_url,media_type},permalink',
             'access_token': access_token
@@ -29,12 +29,10 @@ def edit_caption(media_id):
     new_caption = request.json.get('caption')
     access_token = session.get('access_token')
     
-    url = f"{app.config['GRAPH_API_URL']}/{media_id}"
+    url = f"{app.config['IG_GRAPH_API_URL']}/{media_id}"
     payload = {'caption': new_caption}
     params = {'access_token': access_token, 'comment_enabled': True}
 
-    print(url, payload, access_token)
     response = requests.post(url, params=params, data=payload)
 
-    print(response.json())
     return response.json()

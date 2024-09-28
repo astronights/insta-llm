@@ -6,10 +6,10 @@ auth = Blueprint('auth', __name__)
 
 @auth.route('/login')
 def login():
-    auth_url = (app.config['AUTH_URL']
+    auth_url = (app.config['IG_AUTH_URL']
                 + '?enable_fb_login=0&force_authentication=1&response_type=code'
-                + '&client_id=' + app.config['CLIENT_ID']
-                + '&redirect_uri=' + app.config['REDIRECT_URI']
+                + '&client_id=' + app.config['IG_CLIENT_ID']
+                + '&redirect_uri=' + app.config['IG_REDIRECT_URI']
                 + '&scope=instagram_business_basic,instagram_business_content_publish,instagram_business_manage_comments')
     
     return redirect(auth_url) 
@@ -20,12 +20,12 @@ def callback():
     if not code:
         return "Error: Code not provided by Instagram", 400
 
-    short_token_url = app.config['ACCESS_TOKEN_URL']
+    short_token_url = app.config['IG_ACCESS_TOKEN_URL']
     short_payload = {
-        'client_id': app.config['CLIENT_ID'],
-        'client_secret': app.config['CLIENT_SECRET'],
+        'client_id': app.config['IG_CLIENT_ID'],
+        'client_secret': app.config['IG_CLIENT_SECRET'],
         'grant_type': 'authorization_code',
-        'redirect_uri': app.config['REDIRECT_URI'],
+        'redirect_uri': app.config['IG_REDIRECT_URI'],
         'code': code
     }
 
@@ -35,10 +35,10 @@ def callback():
 
     short_lived_token = short_response.json().get('access_token')
 
-    long_token_url = app.config['GRAPH_API_URL'] + '/access_token'
+    long_token_url = app.config['IG_GRAPH_API_URL'] + '/access_token'
     long_payload = {
         'grant_type': 'ig_exchange_token',
-        'client_secret': app.config['CLIENT_SECRET'],
+        'client_secret': app.config['IG_CLIENT_SECRET'],
         'access_token': short_lived_token
     }
 
@@ -56,7 +56,7 @@ def callback():
 @auth.route('/refresh')
 def refresh():
     
-    token_url = app.config['GRAPH_API_URL'] + '/refresh_access_token'
+    token_url = app.config['IG_GRAPH_API_URL'] + '/refresh_access_token'
     payload = {
         'access_token': session.get('access_token'),
         'grant_type': 'ig_refresh_token'
@@ -71,4 +71,4 @@ def refresh():
     session['expires_in'] = response.get('expires_in')
     session['token_created_at'] = int(time.time())
 
-    return {'message': 'Success'}
+    return {'message': 'Success', 'token': response.get('access_token')}

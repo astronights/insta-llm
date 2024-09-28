@@ -4,15 +4,13 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, request
 import google.generativeai as genai
 
+from ast import literal_eval
 import requests
 import uuid
 import os
 
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+genai.configure(api_key=os.environ["LLM_API_KEY"])
 model = genai.GenerativeModel('gemini-1.5-flash') 
-
-from ast import literal_eval
-import os
 
 llm = Blueprint('llm', __name__)
 

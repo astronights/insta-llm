@@ -19,7 +19,6 @@ def create_app():
     # Load configuration (API keys, secrets)
     app.config.from_object(MetaConfig)
     app.config.from_object(LLMConfig)
-    app.config.from_object(RedisConfig)
 
     # Register blueprints
     app.register_blueprint(home, url_prefix='/home')
@@ -30,8 +29,8 @@ def create_app():
     app.register_blueprint(llm, url_prefix='/llm')
 
     app.config['SESSION_TYPE'] = 'redis'
-    app.config['SESSION_REDIS'] = Redis(host=app.config['HOST'], port=app.config['PORT'], 
-                                        password=app.config['PASS'])
+    app.config['SESSION_REDIS'] = Redis(host=RedisConfig.HOST, port=RedisConfig.PORT, 
+                                        password=RedisConfig.PASS)
 
     Session(app)
 

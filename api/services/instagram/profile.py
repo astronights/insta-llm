@@ -1,6 +1,5 @@
-from flask import Blueprint, session, request, redirect, url_for, jsonify, current_app as app, render_template
+from flask import Blueprint, session, request, jsonify, current_app as app
 import requests
-import os
 
 profile = Blueprint('profile', __name__)
 
@@ -8,7 +7,7 @@ profile = Blueprint('profile', __name__)
 def get_profile():
     access_token = request.args.get('access_token')
 
-    business_profile_url = app.config['GRAPH_API_URL'] + '/me'
+    business_profile_url = app.config['IG_GRAPH_API_URL'] + '/me'
     params = {
         'fields': 'id,username,account_type,biography',
         'access_token': access_token
@@ -25,7 +24,7 @@ def get_profile():
 def update_bio():
     new_bio = request.form.get('bio') 
     access_token = session.get('access_token')
-    page_id = session.get('facebook_page_id')  # Instagram Business Profile is linked to a Facebook Page
+    page_id = session.get('facebook_page_id') 
 
     if page_id and new_bio:
         # You can update bio via Facebook Page API
