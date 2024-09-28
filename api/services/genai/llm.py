@@ -36,7 +36,7 @@ def generate_upload():
     for i in range(n_files):
         file_data = request.files[f'media-{i}']
         filename = secure_filename(file_data.filename)
-        file_path = os.path.join('api/data', filename)
+        file_path = os.path.join(os.environ['TMP_DIR'], filename)
 
         file_data.save(file_path)
         paths.append(file_path)

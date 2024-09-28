@@ -15,8 +15,6 @@ def check_authentication():
         profile = requests.get(url_for('profile.get_profile', _external=True), 
                             params=profile_params).json()
         session['profile_data'] = profile
-        f = open(f'./api/data/{profile["id"]}.txt', "a")
-        f.close()
 
 @home.route('/')
 def bio_page():
