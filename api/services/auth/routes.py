@@ -71,4 +71,4 @@ def refresh():
     session['expires_in'] = response.get('expires_in')
     session['token_created_at'] = int(time.time())
 
-    return redirect(url_for('home.bio_page'))
+    return {'message': 'Success'}

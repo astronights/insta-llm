@@ -11,8 +11,8 @@ def check_authentication():
         return redirect(url_for('auth.login'))
     
     expires_in, created_time = session.get('expires_in'), session.get('token_created_at')
-    # if created_time + expires_in - int(time.time()) < 3000:
-    #     print('Need to refresh token')
+    if created_time + expires_in - int(time.time()) < 60*60*24:
+        requests.get(url_for('auth.refresh', _external=True)).json()
     
     if not session.get('profile_data'):
         profile_params = {'access_token': access_token}

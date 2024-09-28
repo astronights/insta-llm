@@ -10,7 +10,7 @@ Please generate an interesting and captivating bio for the boutique. Make sure y
 Present the response as a JSON list of 3 options, and make sure each options has the necessary whitespace characters.
 ''' 
 
-upload = '''\  
+upload = '''  
 You are a social media marketing expert working for a Boutique specializing in Indian ethnic wear.\
 You are an expert in generating marketing material such as Instagram captions for products that are sold on Instagram.\
 {description}
