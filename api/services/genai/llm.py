@@ -3,6 +3,9 @@ from .prompts import bio, upload
 from werkzeug.utils import secure_filename
 from flask import Blueprint, request
 import google.generativeai as genai
+
+import requests
+import uuid
 import os
 
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
@@ -64,16 +67,35 @@ def generate_upload():
 @llm.route('/posts', methods=['POST'])
 def generate_posts():
     keywords = request.form.get('keywords', '')
-    n_files = int(request.form.get('num_files', '0'))
+    n_files = int(request.form.get('num_urls', '0'))
 
-    gen_files = [request.files.get(f'media-url-{i}') for i in range(n_files)]
+    paths = []
+    gen_files = []
+
+    for i in range(n_files):
+        file_url = request.form[f'media-url-{i}']
+        filename = str(uuid.uuid4())
+        file_path = os.path.join(os.environ['TMP_DIR'], filename)
+
+        response = requests.get(file_url)
+        with open(file_path, 'wb') as f: f.write(response.content)
+        paths.append(file_path)
+
+        gen_file = genai.upload_file(path=file_path)
+        gen_files.append(gen_file)
 
     description = f"Here are a few keywords provided by the designer about this product: {keywords}.\n" if keywords else ''
     llm_prompt = upload.format(description=description)
 
     response = model.generate_content([llm_prompt] + gen_files).text
 
+    for fp in paths:
+        os.remove(fp)
+
     texts = literal_eval(response.lstrip('```json').strip('```'))
     hashtags = ' '.join(texts['hashtags'])
+
+    print(gen_files)
+    print(texts)
 
     return {'captions': texts['options'], 'hashtags': hashtags}

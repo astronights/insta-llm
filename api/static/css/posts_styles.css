@@ -144,6 +144,13 @@ textarea {
     display: inline-block;
     white-space: pre-line;
     text-align: left;
+    align-items: left;
+}
+
+.post-slide p.old-caption {
+    word-break: break-word;  /* Ensures long words/hashtags break and wrap */
+    overflow-wrap: break-word; /* Fallback for older browsers */
+    white-space: normal; /* Ensures text can wrap normally */
 }
 
 .caption-option, .size-option, .emoji-option {
@@ -226,46 +233,50 @@ textarea {
 
 .page-section {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    margin: 20px 0;
-}
-
-.date-range {
-    font-size: 1.2em;
-    margin: 10px 0;
-}
-
-.navigation-buttons {
-    display: flex;
     justify-content: space-between;
-    width: 100%; /* Adjust according to your layout */
+    margin: 20px 0;
+    font-size: 1.1em;
+    width: 100%;
+    position: relative; /* Add position relative */
+}
+
+.date-display {
+    flex: 1; /* This will allow the date display to take the available space */
+    text-align: center; /* Center-align the date display */
+}
+
+.page-button {
+    background: none; /* Optional: style the button background */
+    border: none; /* Optional: remove the border */
+    font-size: 1.5em; /* Make buttons larger for better clickability */
+    cursor: pointer; /* Change cursor to pointer */
 }
 
 .swiper-container {
     width: 100%;
-    height: 100%;
+    height: auto; /* Adjust height to auto to fit media content */
     max-width: 400px;
     margin: 0 auto;
 }
 
-/* 
-
 .swiper-slide {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: center; 
     align-items: center;
     text-align: center;
-    padding: 5px;
 }
 
-.swiper-slide img, video {
-    max-width: 90%;
+.swiper-slide img, 
+.swiper-slide video {
+    max-width: 100%; /* Ensure images/videos do not exceed container width */
     border-radius: 10px;
     margin-bottom: 10px;
 }
 
-.swiper-button-next, .swiper-button-prev {
+.swiper-button-next, 
+.swiper-button-prev {
     color: #fff;
-} */
+}
