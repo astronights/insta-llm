@@ -6,8 +6,9 @@ from .services.home import home
 from .services.genai.llm import llm
 from .config import MetaConfig, LLMConfig
 
+import os
 from uuid import uuid4
-from datetime import timedelta
+from redis import Redis
 
 from flask import Flask
 from flask_session import Session
@@ -29,6 +30,7 @@ def create_app():
     app.register_blueprint(llm, url_prefix='/llm')
 
     app.config['SESSION_TYPE'] = 'redis'
+    app.config['SESSION_REDIS'] = Redis.from_url(os.environ['REDIS_URI'])
     Session(app)
 
     @app.route('/')
