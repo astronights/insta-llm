@@ -69,5 +69,4 @@ def refresh_posts(token, profile_id):
         save_all_media_posts(token)
 
 if __name__ == '__main__':
-    token = 'IGQWRQSFFDYmVxTGl5eUNtcEl0b0hQbHhZAWmJRV1V0TVVHcFpjNDdIZADBZAOW9ydmJBM0x3WVU4Q3ZACMThYNVg1SWNUTGl2SnRWZAmQ4Ylo3VzBHNUtuUGEwd0I1N3hIYnlwdnJTQ3A4bjJ6QQZDZD'
     refresh_posts(token, profile_id)
