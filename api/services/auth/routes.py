@@ -31,7 +31,7 @@ def callback():
 
     short_response = requests.post(short_token_url, data=short_payload)
     if short_response.status_code != 200:
-        return f"Failed to fetch access token. Response: {short_response.text}", 400
+        return f"Failed to fetch short access token. Response: {short_response.text}", 400
 
     short_lived_token = short_response.json().get('access_token')
 
@@ -44,11 +44,31 @@ def callback():
 
     long_response = requests.get(long_token_url, params=long_payload)
     if long_response.status_code != 200:
-        return f"Failed to fetch access token. Response: {long_response.text}", 400
+        return f"Failed to fetch long access token. Response: {long_response.text}", 400
 
     long_response = long_response.json()
     session['access_token'] = long_response.get('access_token')
     session['expires_in'] = long_response.get('expires_in')
+    session['token_created_at'] = int(time.time())
+
+    return redirect(url_for('home.bio_page'))
+
+@auth.route('/refresh')
+def refresh():
+    
+    token_url = app.config['GRAPH_API_URL'] + '/refresh_access_token'
+    payload = {
+        'access_token': session.get('access_token'),
+        'grant_type': 'ig_refresh_token'
+    }
+
+    response = requests.get(token_url, params=payload)
+    if response.status_code != 200:
+        return f"Failed to refresh access token. Response: {response.text}", 400
+
+    response = response.json()
+    session['access_token'] = response.get('access_token')
+    session['expires_in'] = response.get('expires_in')
     session['token_created_at'] = int(time.time())
 
     return redirect(url_for('home.bio_page'))
