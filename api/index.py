@@ -28,6 +28,7 @@ def create_app():
     app.register_blueprint(post, url_prefix='/post')
     app.register_blueprint(llm, url_prefix='/llm')
 
+    app.config['SESSION_TYPE'] = 'memcached'
     Session(app)
 
     @app.route('/')
