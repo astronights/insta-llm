@@ -150,10 +150,32 @@
                     el: '.swiper-pagination',
                     clickable: true,
                     dynamicBullets: true,
-                    dynamicMainBullets: 13,
+                    dynamicMainBullets: 15,
                 },
+                on: {
+                    slideChange: function () {
+                        centerActivePaginationBullet();
+                    },
+                },
+
             });
         });
+
+        function centerActivePaginationBullet() {
+            const pagination = document.querySelector('.swiper-pagination');
+            const activeBullet = document.querySelector('.swiper-pagination-bullet-active');
+
+            const containerWidth = pagination.offsetWidth;
+            const bulletLeftOffset = activeBullet.offsetLeft;
+            const bulletWidth = activeBullet.offsetWidth;
+
+            const scrollPosition = bulletLeftOffset - (containerWidth / 2) + (bulletWidth / 2);
+
+            pagination.scroll({
+                left: scrollPosition,
+                behavior: 'smooth',
+            });
+        }
 
         function toggleEmojiGrid() {
             document.getElementById('dropDown').style.display = 'block';
