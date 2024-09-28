@@ -59,3 +59,21 @@ def generate_upload():
     hashtags = ' '.join(texts['hashtags'])
 
     return {'captions': texts['options'], 'hashtags': hashtags}
+
+
+@llm.route('/posts', methods=['POST'])
+def generate_posts():
+    keywords = request.form.get('keywords', '')
+    n_files = int(request.form.get('num_files', '0'))
+
+    gen_files = [request.files.get(f'media-url-{i}') for i in range(n_files)]
+
+    description = f"Here are a few keywords provided by the designer about this product: {keywords}.\n" if keywords else ''
+    llm_prompt = upload.format(description=description)
+
+    response = model.generate_content([llm_prompt] + gen_files).text
+
+    texts = literal_eval(response.lstrip('```json').strip('```'))
+    hashtags = ' '.join(texts['hashtags'])
+
+    return {'captions': texts['options'], 'hashtags': hashtags}

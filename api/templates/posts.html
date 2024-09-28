@@ -12,22 +12,73 @@
 
 <body>
 
-    <!-- Upload Tab -->
-    <div id="upload" class="content">
+    <!-- Update Tab -->
+    <div id="posts" class="content">
         <h2>Update Captions</h2>
 
-        <div class="swiper-container">
+        <div class='page-section'>
+
+            {% set start_date = posts[-1].formatted_timestamp %}
+            {% set end_date = posts[0].formatted_timestamp %}
+
+            <div class="date-range">
+                <span>
+                    {{ start_date }} - {{ end_date }}
+                </span>
+            </div>
+
+            <div class="navigation-buttons">
+                {% if 'previous' in pages %}
+                <button id="previous-page" onclick="loadPage('prev')">Newer</button>
+                {% endif %}
+
+                {% if 'next' in pages %}
+                <button id="next-page" onclick="loadPage('next')">Older</button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- For each page, display the posts slider -->
+        <div class="swiper-container posts-slider">
             <div class="swiper-wrapper">
                 {% for post in posts %}
-                <div class="swiper-slide">
-                    <img src="{{ post.media_url }}" alt="Post Image" style="max-width:100%;">
-                    <p>{{ post.caption }}</p>
-                    <input type="text" id="caption_{{ post.id }}" placeholder="Update caption"
-                        value="{{ post.caption }}">
-                    <button onclick="updateCaption('{{ post.id }}')">Update Caption</button>
+                <div class="swiper-slide post-slide">
+
+                    <!-- If the post is a carousel album, display an inner slider for the media items (Numbered pagination) -->
+                    {% if post.media_type == 'CAROUSEL_ALBUM' %}
+                    <div class="swiper-container inner-carousel-slider">
+                        <div class="swiper-wrapper">
+                            {% for media in post.children %}
+                            <div class="swiper-slide">
+                                {% if media.media_type == 'VIDEO' %}
+                                <video controls>
+                                    <source src="{{ media.media_url }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                                {% else %}
+                                <img src="{{ media.media_url }}" alt="Post Image">
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Numbered pagination for the inner slider -->
+                        <div class="swiper-pagination inner-carousel-pagination"></div>
+                    </div>
+                    {% else %}
+                    {% if post.media_type == 'VIDEO' %}
+                    <video controls>
+                        <source src="{{ post.media_url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    {% else %}
+                    <img src="{{ post.media_url }}" alt="Post Image">
+                    {% endif %}
+                    {% endif %}
+                    <p class="old-caption">{{ post.caption }}</p>
                 </div>
                 {% endfor %}
             </div>
+            <div class="swiper-pagination posts-pagination"></div>
         </div>
 
 
@@ -77,8 +128,8 @@
     <!-- Tab bar at the bottom -->
     <div class="tab-bar">
         <button class="tab-button" onclick="showTab('')">Bio</button>
-        <button class="tab-button" onclick="showTab('posts')">Posts</button>
-        <button class="tab-button active" onclick="showTab('upload')">Upload</button>
+        <button class="tab-button active" onclick="showTab('posts')">Posts</button>
+        <button class="tab-button" onclick="showTab('upload')">Upload</button>
     </div>
 
     <script>
@@ -87,9 +138,39 @@
         let selectedSizes = [];
         let loadingDotsInterval;
 
-        const swiper = new Swiper('.swiper-container', {
-            slidesPerView: 1,
-            spaceBetween: 10,
+        function loadPage(direction) {
+            const url = `/home/posts/${direction}`;
+            window.location.href = url;
+        }
+
+        const postSwipers = [];
+        document.querySelectorAll('.posts-slider').forEach((postSlider, index) => {
+            postSwipers[index] = new Swiper(postSlider, {
+                slidesPerView: 1,
+                spaceBetween: 10,
+                pagination: {
+                    el: '.posts-pagination',
+                    clickable: true,
+                },
+                allowTouchMove: true, // Enable swiping for post slider
+            });
+        });
+
+        const carouselSwipers = [];
+        document.querySelectorAll('.inner-carousel-slider').forEach((carouselSlider, index) => {
+            carouselSwipers[index] = new Swiper(carouselSlider, {
+                slidesPerView: 1,
+                spaceBetween: 5,
+                allowTouchMove: false, // Disable swiping for carousel media
+                pagination: {
+                    el: '.inner-carousel-pagination',
+                    clickable: true,
+                    type: 'bullets', // Use bullets (or numbered pagination)
+                    renderBullet: function (index, className) {
+                        return '<span class="' + className + '">' + (index + 1) + '</span>';
+                    },
+                },
+            });
         });
 
         function toggleEmojiGrid() {
@@ -125,56 +206,6 @@
             window.location.href = url;
         }
 
-        function triggerUpload(index) {
-            const input = document.getElementById(`upload-input-${index}`);
-            input.click();
-        }
-
-        function handleFileUpload(index) {
-            const fileInput = document.getElementById(`upload-input-${index}`);
-            const file = fileInput.files[0];
-
-            if (file) {
-                if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-                    alert('Only images and videos are allowed');
-                    return;
-                }
-
-                const mediaBox = document.getElementById(`media-box-${index}`);
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    if (file.type.startsWith('video/')) {
-                        mediaBox.innerHTML = `<div class="video-thumbnail">
-                                                <video width="72" height="72" poster="placeholder.png" muted autoplay loop>
-                                                    <source src="${e.target.result}" type="${file.type}">
-                                                </video>
-                                                <span class="video-icon">🎥</span>
-                                              </div>`;
-                    } else {
-                        mediaBox.innerHTML = `<img src="${e.target.result}" class="thumbnail">`;
-                    }
-                };
-                reader.readAsDataURL(file);
-
-                uploadedFiles[index - 1] = file;
-
-                if (uploadedFiles.length < 4 && document.getElementById(`media-box-${uploadedFiles.length + 1}`) === null) {
-                    addMediaBox(uploadedFiles.length + 1);
-                }
-            }
-        }
-
-        function addMediaBox(index) {
-            const mediaGrid = document.querySelector('.media-grid');
-            const mediaBox = document.createElement('div');
-            mediaBox.className = 'media-box';
-            mediaBox.id = `media-box-${index}`;
-            mediaBox.onclick = function () { triggerUpload(index); };
-            mediaBox.innerHTML = `<span class="placeholder">+</span>
-                                  <input type="file" id="upload-input-${index}" class="upload-input" accept="image/*,video/*" onchange="handleFileUpload(${index})" />`;
-            mediaGrid.appendChild(mediaBox);
-        }
-
         function startLoadingDots() {
             const loadingDots = document.getElementById('loading-dots');
             loadingDots.style.display = 'inline';
@@ -191,9 +222,22 @@
         }
 
         document.getElementById("generate-llm").addEventListener("click", function () {
+            const activeSlide = document.querySelector('.swiper-slide-active');
             const freeText = document.getElementById("free-text").value.trim();
 
-            if (uploadedFiles.length === 0 && !freeText) {
+            // Collect media URLs from the active post
+            let mediaElements = activeSlide.querySelectorAll('img, video');
+            let mediaUrls = [];
+
+            mediaElements.forEach(media => {
+                if (media.tagName.toLowerCase() === 'video') {
+                    mediaUrls.push(media.querySelector('source').src);
+                } else {
+                    mediaUrls.push(media.src);
+                }
+            });
+
+            if (mediaUrls.length === 0 && !freeText) {
                 alert("Please upload at least one file or enter some text.");
                 return;
             }
@@ -203,13 +247,13 @@
             startLoadingDots();
 
             const formData = new FormData();
-            uploadedFiles.forEach((file, index) => {
-                formData.append(`media-${index}`, file);
+            mediaUrls.forEach((url, index) => {
+                formData.append(`media-url-${index}`, url);
             });
             formData.append("keywords", freeText);
-            formData.append("num_files", uploadedFiles.length || 0);
+            formData.append("num_urls", mediaUrls.length);
 
-            fetch('/llm/upload', {
+            fetch('/llm/posts', {
                 method: 'POST',
                 body: formData
             })

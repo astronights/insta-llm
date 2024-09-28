@@ -7,14 +7,23 @@ media = Blueprint('media', __name__)
 def get_media():
 
     access_token = request.args.get('access_token')
+
+    print(access_token)
+
+    page_url = request.args.get('page_url')
+
+    print(page_url)
+
+    if page_url:
+        posts_response = requests.get(page_url)
+    else:
+        posts_url = app.config['GRAPH_API_URL']+ '/me/media'
+        posts_params = {
+            'fields': 'id,caption,media_url,media_type,timestamp,children',
+            'access_token': access_token
+        }
+        posts_response = requests.get(posts_url, params=posts_params)
     
-    posts_url = request.args.get('url', app.config['GRAPH_API_URL']+ '/me/media')
-    posts_params = {
-        'fields': 'id,caption,media_url,media_type',
-        'access_token': access_token
-    }
-  
-    posts_response = requests.get(posts_url, params=posts_params)
     if posts_response.status_code != 200:
         return f"Failed to fetch posts. Response: {posts_response.text}", 400
 

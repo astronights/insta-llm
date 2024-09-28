@@ -131,7 +131,7 @@
                 reader.onload = function (e) {
                     if (file.type.startsWith('video/')) {
                         mediaBox.innerHTML = `<div class="video-thumbnail">
-                                                <video width="72" height="72" poster="placeholder.png" muted autoplay loop>
+                                                <video width="72" height="72" muted>
                                                     <source src="${e.target.result}" type="${file.type}">
                                                 </video>
                                                 <span class="video-icon">🎥</span>

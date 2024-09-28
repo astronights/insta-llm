@@ -9,7 +9,7 @@ from .config import MetaConfig, LLMConfig, RedisConfig
 from uuid import uuid4
 from redis import Redis
 
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_session import Session
 
 def create_app():
@@ -38,6 +38,12 @@ def create_app():
     @app.route('/')
     def hello_world():
         return 'Hello, World!'
+    
+    from flask import send_from_directory
+
+    @app.route('/favicon')
+    def favicon():
+        return send_from_directory('static', 'favicon.ico')
 
     return app
 

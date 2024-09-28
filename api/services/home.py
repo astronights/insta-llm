@@ -1,5 +1,7 @@
 from flask import Blueprint, session, request, redirect, url_for, jsonify, current_app as app, render_template
 import requests
+
+from datetime import datetime
 import time
 
 home = Blueprint('home', __name__)
@@ -30,13 +32,27 @@ def upload_page():
     return render_template('upload.html')
 
 @home.route('/posts')
-def posts_page():
+@home.route('/posts/<string:direction>')
+def posts_page(direction=None):
     access_token = session.get('access_token')
+
+    page_url = None
+    if direction:
+        if direction == 'previous':
+            page_url = session.get('page_previous')
+        else:
+            page_url = session.get('page_next')
     
-    media_params = {'access_token': access_token, 'url': request.args.get('next_page', None)} 
+    media_params = {'access_token': access_token, 'page_url': page_url} 
     media = requests.get(url_for('media.get_media', _external=True), params=media_params).json()
 
     posts = media['data']
-    next_page = media['paging']['next']
+    pages = media['paging']
+
+    for post in posts:
+        post['formatted_timestamp'] = datetime.strptime(post['timestamp'][:-5], '%Y-%m-%dT%H:%M:%S').strftime('%d %b, %Y')
+
+    session['page_previous'] = pages.get('previous')
+    session['page_next'] = pages.get('next')
     
-    return render_template('posts.html', posts=posts, next_page=next_page)
+    return render_template('posts.html', posts=posts, pages=pages)
