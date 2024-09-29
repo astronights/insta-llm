@@ -6,6 +6,7 @@ This repository leverages the power of Large Language Models (LLM) to generate a
 - [Overview](#overview)
 - [App Features](#app-features)
 - [Large Language Modelling](#large-language-modelling)
+- [More Scripts](#more-scripts)
 - [Running the Code](#running-the-code)
   - [Prerequisites](#prerequisites)
   - [API Keys](#api-keys)
@@ -57,6 +58,23 @@ The backbone of the project is powered by **Google's `Gemini 1.5 Flash` LLM**. T
 
 ### **4. Output Formatting**
    The model outputs data in structured **JSON** format, making it easy to integrate directly into the UI components of the app for a seamless user experience.
+
+---
+
+## More Scripts
+
+The project also contains scripts to help you update your old posts in bulk. These can be triggered manually with Python. In order to run these scripts, you would require the credentials, access token and the Gemini API Key.
+
+```bash
+.
+├── scripts
+│   ├── crawler.py      # Crawl all historical posts by the user.
+│   ├── genai.py        # Generate captions with the LLM.
+│   ├── postprocess.py  # Perform any post processing steps required.
+│   └── automation.csv  # Automate the update of captions.
+```
+
+**NOTE**: The automation script requires Selenium, the version of which is mentioned in the requirements.
 
 ---
 

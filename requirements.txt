@@ -1,7 +1,11 @@
+# Web App
 redis==5.1.0
-# selenium=4.25.0 - If you use scripts
-
 Flask==3.0.3
 Flask-Session==0.8.0
 
+# LLM
 google-generativeai==0.8.2
+
+# Scripts
+# selenium==4.25.0
+# pyperclip==1.9.0
