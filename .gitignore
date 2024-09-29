@@ -9,3 +9,9 @@ insta_llm
 
 # Data
 **/data/*.mp4
+*.csv
+*.json
+
+# Jupyter
+*.ipynb
+.ipynb_checkpoints
