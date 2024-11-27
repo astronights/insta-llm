@@ -34,7 +34,7 @@ def edit_caption(new_caption):
     buttons = driver.find_elements(By.XPATH, "//button")
     edit_button = [butt for butt in buttons if 'Edit' in butt.get_attribute('outerHTML')][0]
     edit_button.click()
-    time.sleep(20)
+    time.sleep(2)
 
     caption_area = driver.find_element(By.XPATH, "//div[@aria-label='Write a caption...']")
     caption_area.clear()
@@ -63,19 +63,18 @@ for ix, row in df.iterrows():
     POST = row['permalink']
     CAPTION = row['caption']
 
-    try:
-        navigate_to_post(POST)
-        edit_caption(CAPTION)
-    except:
-        continue
+    navigate_to_post(POST)
+    edit_caption(CAPTION)
 
     row_df = df[df.id == row.id][['id', 'permalink']]
     row_df.to_csv('./completed.csv', mode='a', index=False, header=False)
+
+    time.sleep(10)
 
     c += 1
     if c % 5 == 0:
         print(f'Processed: {c} {(time.time()-start):.2f}')
         start = time.time()
 
-        driver.quit()
-        driver = webdriver.Chrome(service=webdriver_service, options=chrome_options)
+    if c == 20:
+        break
