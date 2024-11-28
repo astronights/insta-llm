@@ -73,9 +73,14 @@ def generate_upload():
         os.remove(fp)   
 
     texts = literal_eval(response.lstrip('```json').strip('```'))
+
+    options = texts['options']
+    if not isinstance(options[0], str):
+        options = [list(x.values())[0] for x in options]
+
     hashtags = ' '.join(texts['hashtags'])
 
-    return {'captions': texts['options'], 'hashtags': hashtags}
+    return {'captions': options, 'hashtags': hashtags}
 
 
 @llm.route('/posts', methods=['POST'])
