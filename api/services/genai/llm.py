@@ -35,7 +35,7 @@ def generate_bio():
     old_bio = request.form.get('bio')
     
     llm_prompt = bio.format(old_bio=old_bio)    
-    options = model.generate_content(llm_prompt).text.lstrip('```json').strip('```')
+    options = model.generate_content(llm_prompt).text.strip().lstrip('```json').strip('```')
 
     texts = [v['bio'] for v in literal_eval(options)]
 
