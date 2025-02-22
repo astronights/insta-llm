@@ -6,7 +6,9 @@ from .services.home import home
 from .services.genai.llm import llm
 from .config import MetaConfig, LLMConfig, RedisConfig
 
+import json
 import logging
+
 from uuid import uuid4
 from redis import Redis
 
@@ -49,18 +51,25 @@ def create_app():
 
 app = create_app()
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 @app.before_request
 def log_request_info():
-    logging.info(f"Received request: {request.method} {request.url}")
-    logging.info(f"Headers: {dict(request.headers)}")
+    logging.info(f'Received request: {request.method} {request.url}')
+    logging.info(f'Headers: {dict(request.headers)}')
     if request.is_json:
-        logging.info(f"Payload: {request.get_json()}")
+        logging.info(f'Payload: {request.get_json()}')
 
 @app.after_request
 def log_response_info(response):
-    logging.info(f"Response status: {response.status}")
+    logging.info(f'Response status: {response.status}')
+
+    if response.is_json:
+        try:
+            response_data = json.loads(response.get_data(as_text=True))
+            logging.info(f"Response data: {json.dumps(response_data, indent=2)}")
+        except Exception as e:
+            logging.error(f"Failed to log response body: {e}")
     return response
 
 # Entry point for Vercel
