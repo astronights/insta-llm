@@ -64,12 +64,20 @@ def log_request_info():
 def log_response_info(response):
     logging.info(f'Response status: {response.status}')
 
-    if response.is_json:
-        try:
-            response_data = json.loads(response.get_data(as_text=True))
-            logging.info(f"Response data: {json.dumps(response_data, indent=2)}")
-        except Exception as e:
-            logging.error(f"Failed to log response body: {e}")
+    if response.direct_passthrough:
+        response.direct_passthrough = False
+
+    try:
+        response_data = response.get_data(as_text=True)
+        
+        # Log JSON response prettily, otherwise log as plain text
+        if response.is_json:
+            logging.info(f"Response data: {json.dumps(json.loads(response_data), indent=2)}")
+        else:
+            logging.info(f"Response data: {response_data}")
+
+    except Exception as e:
+        logging.error(f"Failed to log response body: {e}")
     return response
 
 # Entry point for Vercel
