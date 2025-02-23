@@ -188,17 +188,12 @@
             generateButton.disabled = true;
             startLoadingDots();
 
-            alert('Hello')
-
             const formData = new FormData();
             uploadedFiles.forEach((file, index) => {
                 formData.append(`media-${index}`, file);
             });
             formData.append("keywords", freeText);
             formData.append("num_files", uploadedFiles.length || 0);
-
-            alert(freeText);
-            alert(uploadedFiles.length);
 
             fetch('/llm/upload', {
                 method: 'POST',
