@@ -6,13 +6,10 @@ from .services.home import home
 from .services.genai.llm import llm
 from .config import MetaConfig, LLMConfig, RedisConfig
 
-import json
-import logging
-
 from uuid import uuid4
 from redis import Redis
 
-from flask import Flask, send_from_directory, request, jsonify
+from flask import Flask
 from flask_session import Session
 
 def create_app():
@@ -50,35 +47,6 @@ def create_app():
     return app
 
 app = create_app()
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-@app.before_request
-def log_request_info():
-    logging.info(f'Received request: {request.method} {request.url}')
-    logging.info(f'Headers: {dict(request.headers)}')
-    if request.is_json:
-        logging.info(f'Payload: {request.get_json()}')
-
-@app.after_request
-def log_response_info(response):
-    logging.info(f'Response status: {response.status}')
-
-    if response.direct_passthrough:
-        response.direct_passthrough = False
-
-    try:
-        response_data = response.get_data(as_text=True)
-        
-        # Log JSON response prettily, otherwise log as plain text
-        if response.is_json:
-            logging.info(f"Response data: {json.dumps(json.loads(response_data), indent=2)}")
-        else:
-            logging.info(f"Response data: {response_data}")
-
-    except Exception as e:
-        logging.error(f"Failed to log response body: {e}")
-    return response
 
 # Entry point for Vercel
 def main(request):
