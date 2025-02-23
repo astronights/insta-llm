@@ -68,15 +68,11 @@ def generate_upload():
     llm_prompt = upload.format(description=description)    
 
     response = model.generate_content([llm_prompt] + gen_files).text
-
-    print(response, flush=True)
     
     for fp in paths:
         os.remove(fp)   
 
-    texts = literal_eval(response.lstrip('```json').strip('```'))
-
-    print(texts, flush=True)
+    texts = literal_eval(response.strip().lstrip('```json').strip('```'))
 
     options = texts['options']
     if not isinstance(options[0], str):
