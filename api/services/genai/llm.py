@@ -10,10 +10,6 @@ import uuid
 import time
 import os
 
-import logging
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
 genai.configure(api_key=os.environ["LLM_API_KEY"])
 model = genai.GenerativeModel('gemini-1.5-flash') 
 
@@ -73,14 +69,14 @@ def generate_upload():
 
     response = model.generate_content([llm_prompt] + gen_files).text
 
-    logging.info(response)
+    print(response, flush=True)
     
     for fp in paths:
         os.remove(fp)   
 
     texts = literal_eval(response.lstrip('```json').strip('```'))
 
-    logging.info(texts)
+    print(texts, flush=True)
 
     options = texts['options']
     if not isinstance(options[0], str):
