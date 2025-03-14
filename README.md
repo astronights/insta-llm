@@ -45,7 +45,7 @@ This app utilizes **Generative AI** techniques to automate content generation fo
 
 ## Large Language Modelling
 
-The backbone of the project is powered by **Google's `Gemini 1.5 Flash` LLM**. This model is employed for its robust free tier and impressive capabilities in handling both text and media content generation.
+The backbone of the project is powered by **Google's `Gemini 2.0 Flash` LLM**. This model is employed for its robust free tier and impressive capabilities in handling both text and media content generation.
 
 ### **1. Fine-Tuned Prompts**
    The LLM has been fine-tuned with specific prompts for various use cases, such as bio updates, caption generation, and hashtag creation, to align with social media marketing best practices.
