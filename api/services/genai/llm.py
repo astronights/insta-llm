@@ -11,7 +11,7 @@ import time
 import os
 
 genai.configure(api_key=os.environ["LLM_API_KEY"])
-model = genai.GenerativeModel('gemini-3-pro-image-preview') 
+model = genai.GenerativeModel('gemini-2.5-flash-image') 
 
 llm = Blueprint('llm', __name__)
 
