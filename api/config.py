@@ -11,8 +11,8 @@ class MetaConfig:
     IG_GRAPH_API_URL = 'https://graph.instagram.com'
 
 class RedisConfig:
-    HOST = 'redis-12079.c8.us-east-1-3.ec2.redns.redis-cloud.com'
-    PORT = 12079
+    HOST = 'redis-18037.c283.us-east-1-4.ec2.cloud.redislabs.com'
+    PORT = 18037
     PASS = os.getenv('REDIS_PASS', '')
     
 class LLMConfig:    
