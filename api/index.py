@@ -30,6 +30,7 @@ def create_app():
 
     app.config['SESSION_TYPE'] = 'redis'
     app.config['SESSION_REDIS'] = Redis(host=RedisConfig.HOST, port=RedisConfig.PORT, 
+                                        username='default',
                                         password=RedisConfig.PASS)
 
     Session(app)
